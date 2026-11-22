@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reports — PharmaChain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/css/main.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container flex-between">
+    <a href="/" class="navbar-brand"><div class="logo-icon">🧊</div><span>PharmaChain</span></a>
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <span id="user-name" style="font-size:0.88rem; font-weight:600; color:var(--text);"></span>
+      <button onclick="logout()" class="btn btn-outline btn-sm"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-label">Navigation</div>
+    <a href="/dashboard" class="sidebar-link"><i class="fas fa-th-large"></i> Dashboard</a>
+    <a href="/shipments" class="sidebar-link"><i class="fas fa-truck"></i> Shipments</a>
+    <a href="/alerts" class="sidebar-link"><i class="fas fa-bell"></i> Alerts</a>
+    <a href="/reports" class="sidebar-link active"><i class="fas fa-chart-bar"></i> Reports</a>
+    <div class="sidebar-label" style="margin-top:1rem;">Settings</div>
+    <a href="#" class="sidebar-link"><i class="fas fa-cog"></i> Settings</a>
+    <a href="#" class="sidebar-link"><i class="fas fa-users"></i> Team</a>
+  </aside>
+
+  <main class="main-content">
+    <div class="flex-between" style="margin-bottom:1.75rem;">
+      <div>
+        <h1 style="font-size:1.6rem; margin-bottom:0.2rem;">Reports & Analytics</h1>
+        <p style="font-size:0.88rem;">Compliance reports, analytics, and audit-ready documentation</p>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="toast('Report generation queued…','info')">
+        <i class="fas fa-file-plus"></i> Generate Report
+      </button>
+    </div>
+
+    <!-- Compliance Score -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+      <div class="stat-card green">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-value">98.3%</div>
+        <div class="stat-label">Compliance Score</div>
+        <div class="stat-change text-success">↑ 1.2% from last month</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon">📄</div>
+        <div class="stat-value">47</div>
+        <div class="stat-label">Reports Generated</div>
+        <div class="stat-change text-accent">This month</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-value">3</div>
+        <div class="stat-label">Excursions (MTD)</div>
+        <div class="stat-change text-warning">All documented</div>
+      </div>
+      <div class="stat-card cyan">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">142</div>
+        <div class="stat-label">Shipments (MTD)</div>
+        <div class="stat-change text-accent">On schedule</div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-chart-line" style="color:var(--accent); margin-right:0.4rem;"></i> Monthly Shipment Volume</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="volumeChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-chart-bar" style="color:var(--accent); margin-right:0.4rem;"></i> Excursion Types (Nov 2026)</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="excursionChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Table -->
+    <div class="card" style="padding:0;">
+      <div style="padding:1.2rem 1.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:0.95rem; font-weight:700; color:var(--text);">
+          <i class="fas fa-folder-open" style="color:var(--accent); margin-right:0.4rem;"></i> Report Archive
+        </h3>
+        <span style="font-size:0.8rem; color:var(--text-muted);">FDA 21 CFR Part 11 Compliant</span>
+      </div>
+      <div class="table-container" style="border:none; border-radius:0 0 var(--radius) var(--radius);">
+        <table id="reports-table">
+          <thead>
+            <tr>
+              <th>Report ID</th>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="reports-body">
+            <tr><td colspan="6" style="text-align:center; padding:3rem;"><div class="spinner" style="margin:0 auto;"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Compliance Checklist -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <h3><i class="fas fa-clipboard-check" style="color:var(--accent); margin-right:0.4rem;"></i> Regulatory Compliance Checklist</h3>
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:0.75rem;">
+        <div class="checklist-item">
+          <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; border-radius:8px; background:rgba(46,204,113,0.06); border:1px solid rgba(46,204,113,0.15);">
+            <span style="color:var(--success); font-size:1.1rem;">✅</span>
+            <div>
+              <div style="font-weight:600; font-size:0.88rem;">Temperature Logging</div>
+              <div style="font-size:0.76rem; color:var(--text-muted);">Every 30 seconds — FDA 21 CFR compliant</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; border-radius:8px; background:rgba(46,204,113,0.06); border:1px solid rgba(46,204,113,0.15);">
+            <span style="color:var(--success); font-size:1.1rem;">✅</span>
+            <div>
+              <div style="font-weight:600; font-size:0.88rem;">Electronic Signatures</div>
+              <div style="font-size:0.76rem; color:var(--text-muted);">21 CFR Part 11 — digital audit trail</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; border-radius:8px; background:rgba(46,204,113,0.06); border:1px solid rgba(46,204,113,0.15);">
+            <span style="color:var(--success); font-size:1.1rem;">✅</span>
+            <div>
+              <div style="font-weight:600; font-size:0.88rem;">Excursion Documentation</div>
+              <div style="font-size:0.76rem; color:var(--text-muted);">WHO GDP — all deviations recorded</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; border-radius:8px; background:rgba(46,204,113,0.06); border:1px solid rgba(46,204,113,0.15);">
+            <span style="color:var(--success); font-size:1.1rem;">✅</span>
+            <div>
+              <div style="font-weight:600; font-size:0.88rem;">Sensor Calibration Records</div>
+              <div style="font-size:0.76rem; color:var(--text-muted);">ISO 15502 — quarterly calibration logs</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; border-radius:8px; background:rgba(243,156,18,0.06); border:1px solid rgba(243,156,18,0.15);">
+            <span style="color:var(--warning); font-size:1.1rem;">⏳</span>
+            <div>
+              <div style="font-weight:600; font-size:0.88rem;">Annual Validation Report</div>
+              <div style="font-size:0.76rem; color:var(--text-muted);">Due: Dec 31, 2026 — in progress</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; border-radius:8px; background:rgba(46,204,113,0.06); border:1px solid rgba(46,204,113,0.15);">
+            <span style="color:var(--success); font-size:1.1rem;">✅</span>
+            <div>
+              <div style="font-weight:600; font-size:0.88rem;">Data Encryption (AES-256)</div>
+              <div style="font-size:0.76rem; color:var(--text-muted);">GDPR & HIPAA compliant storage</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+  const token = localStorage.getItem('pharma_token');
+  if (!token) { window.location.href = '/login'; }
+  const user = JSON.parse(localStorage.getItem('pharma_user') || '{}');
+  document.getElementById('user-name').textContent = user.name || '';
+
+  function logout() { localStorage.clear(); fetch('/api/auth/logout', {method:'POST'}); window.location.href='/login'; }
+
+  function toast(msg, type = 'success') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+    t.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  }
+
+  const headers = { 'Authorization': `Bearer ${token}` };
+
+  async function loadReports() {
+    try {
+      const res = await fetch('/api/reports', { headers, credentials: 'include' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json();
+      const tbody = document.getElementById('reports-body');
+      const typeBadge = { compliance: 'badge-accent', excursion: 'badge-danger', hardware: 'badge-warning', analytics: 'badge-info' };
+      const typeLabel = { compliance: 'Compliance', excursion: 'Excursion', hardware: 'Hardware', analytics: 'Analytics' };
+      tbody.innerHTML = data.map(r => `
+        <tr>
+          <td><strong>${r.id}</strong></td>
+          <td>${r.title}</td>
+          <td><span class="badge ${typeBadge[r.type]}">${typeLabel[r.type]}</span></td>
+          <td style="font-size:0.85rem;">${r.date}</td>
+          <td>
+            ${r.status === 'ready'
+              ? '<span class="badge badge-success">✓ Ready</span>'
+              : '<span class="badge badge-warning">⏳ Generating…</span>'}
+          </td>
+          <td>
+            ${r.status === 'ready'
+              ? `<button class="btn btn-outline btn-sm" onclick="toast('Downloading ${r.id}…','info')"><i class="fas fa-download"></i> PDF</button>`
+              : '<button class="btn btn-outline btn-sm" disabled>Processing…</button>'}
+          </td>
+        </tr>`).join('');
+    } catch(e) {
+      document.getElementById('reports-body').innerHTML = '<tr><td colspan="6" style="color:var(--danger); text-align:center; padding:2rem;">Failed to load reports.</td></tr>';
+    }
+  }
+
+  // ─── Charts ──────────────────────────────────────────────
+  Chart.defaults.color = '#8ba8c4';
+
+  // Volume Chart
+  const vCtx = document.getElementById('volumeChart').getContext('2d');
+  new Chart(vCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Jun','Jul','Aug','Sep','Oct','Nov'],
+      datasets: [{
+        label: 'Shipments',
+        data: [98, 112, 125, 134, 139, 142],
+        backgroundColor: 'rgba(0,188,212,0.5)',
+        borderColor: 'rgba(0,188,212,0.8)',
+        borderWidth: 1.5,
+        borderRadius: 6
+      }, {
+        label: 'Compliant',
+        data: [95, 109, 123, 131, 136, 140],
+        backgroundColor: 'rgba(46,204,113,0.4)',
+        borderColor: 'rgba(46,204,113,0.8)',
+        borderWidth: 1.5,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8ba8c4', font: { size: 11 } } }, tooltip: { backgroundColor: '#0f2c47', titleColor: '#e8f4fd', bodyColor: '#8ba8c4' } },
+      scales: {
+        x: { ticks: { color: '#4a7a9b' }, grid: { color: 'rgba(0,188,212,0.06)' } },
+        y: { ticks: { color: '#4a7a9b' }, grid: { color: 'rgba(0,188,212,0.06)' } }
+      }
+    }
+  });
+
+  // Excursion Chart
+  const eCtx = document.getElementById('excursionChart').getContext('2d');
+  new Chart(eCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Temp Excursion', 'High Humidity', 'Low Battery', 'Signal Loss'],
+      datasets: [{
+        data: [3, 1, 2, 1],
+        backgroundColor: ['rgba(231,76,60,0.7)','rgba(243,156,18,0.7)','rgba(52,152,219,0.7)','rgba(149,165,166,0.5)'],
+        borderWidth: 0, hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { position: 'right', labels: { color: '#8ba8c4', font: { size: 11 }, boxWidth: 12, padding: 12 } }, tooltip: { backgroundColor: '#0f2c47', titleColor: '#e8f4fd', bodyColor: '#8ba8c4' } }
+    }
+  });
+
+  loadReports();
+</script>
+</body>
+</html>

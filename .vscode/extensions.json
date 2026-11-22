@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "ms-vscode.vscode-node-azure-pack",
+    "streetsidesoftware.code-spell-checker",
+    "csstools.postcss",
+    "ms-vscode.live-server",
+    "humao.rest-client",
+    "yzhang.markdown-all-in-one",
+    "PKief.material-icon-theme",
+    "GitHub.copilot"
+  ]
+}

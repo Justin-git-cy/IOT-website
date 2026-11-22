@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shipments — PharmaChain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/css/main.css"/>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container flex-between">
+    <a href="/" class="navbar-brand"><div class="logo-icon">🧊</div><span>PharmaChain</span></a>
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <div style="font-size:0.82rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center;"><span class="live-dot"></span> Live</div>
+      <span id="user-name" style="font-size:0.88rem; font-weight:600; color:var(--text);"></span>
+      <button onclick="logout()" class="btn btn-outline btn-sm"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-label">Navigation</div>
+    <a href="/dashboard" class="sidebar-link"><i class="fas fa-th-large"></i> Dashboard</a>
+    <a href="/shipments" class="sidebar-link active"><i class="fas fa-truck"></i> Shipments</a>
+    <a href="/alerts" class="sidebar-link"><i class="fas fa-bell"></i> Alerts</a>
+    <a href="/reports" class="sidebar-link"><i class="fas fa-chart-bar"></i> Reports</a>
+    <div class="sidebar-label" style="margin-top:1rem;">Settings</div>
+    <a href="#" class="sidebar-link"><i class="fas fa-cog"></i> Settings</a>
+    <a href="#" class="sidebar-link"><i class="fas fa-users"></i> Team</a>
+  </aside>
+
+  <main class="main-content">
+    <div class="flex-between" style="margin-bottom:1.75rem;">
+      <div>
+        <h1 style="font-size:1.6rem; margin-bottom:0.2rem;">Shipments</h1>
+        <p style="font-size:0.88rem;">Real-time temperature and humidity monitoring for all active shipments</p>
+      </div>
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+        <select id="filter-status" class="form-control" style="width:auto; padding:0.5rem 0.9rem; font-size:0.85rem;" onchange="filterShipments()">
+          <option value="all">All Status</option>
+          <option value="in-transit">In Transit</option>
+          <option value="alert">Alert</option>
+          <option value="delivered">Delivered</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="loadShipments()"><i class="fas fa-sync-alt"></i> Refresh</button>
+      </div>
+    </div>
+
+    <!-- Summary Bands -->
+    <div style="display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+      <div style="display:flex; gap:0.5rem; align-items:center; padding:0.5rem 1rem; background:rgba(0,188,212,0.08); border-radius:8px; border:1px solid rgba(0,188,212,0.2);">
+        <span style="font-size:1rem;">🚛</span> <span id="count-transit" style="font-weight:700; color:var(--accent);">—</span> <span style="font-size:0.82rem; color:var(--text-muted);">In Transit</span>
+      </div>
+      <div style="display:flex; gap:0.5rem; align-items:center; padding:0.5rem 1rem; background:rgba(231,76,60,0.08); border-radius:8px; border:1px solid rgba(231,76,60,0.2);">
+        <span style="font-size:1rem;">🚨</span> <span id="count-alert" style="font-weight:700; color:var(--danger);">—</span> <span style="font-size:0.82rem; color:var(--text-muted);">Alerts</span>
+      </div>
+      <div style="display:flex; gap:0.5rem; align-items:center; padding:0.5rem 1rem; background:rgba(46,204,113,0.08); border-radius:8px; border:1px solid rgba(46,204,113,0.2);">
+        <span style="font-size:1rem;">✅</span> <span id="count-delivered" style="font-weight:700; color:var(--success);">—</span> <span style="font-size:0.82rem; color:var(--text-muted);">Delivered</span>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card" style="padding:0;">
+      <div style="padding:1.2rem 1.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:0.95rem; font-weight:700; color:var(--text);">
+          <i class="fas fa-table" style="color:var(--accent); margin-right:0.4rem;"></i>
+          Active Shipment Log
+        </h3>
+        <span class="badge badge-accent"><span class="live-dot" style="width:6px;height:6px; margin-right:4px;"></span> Live Data</span>
+      </div>
+      <div class="table-container" style="border:none; border-radius:0 0 var(--radius) var(--radius);">
+        <table id="shipments-table">
+          <thead>
+            <tr>
+              <th>Shipment ID</th>
+              <th>Drug / Product</th>
+              <th>Client</th>
+              <th>Route</th>
+              <th>Temperature</th>
+              <th>Humidity</th>
+              <th>Battery</th>
+              <th>Status</th>
+              <th>Last Ping</th>
+            </tr>
+          </thead>
+          <tbody id="shipments-body">
+            <tr><td colspan="9" style="text-align:center; padding:3rem;"><div class="spinner" style="margin:0 auto;"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div id="detail-panel" style="display:none;" class="card mt-4">
+      <div class="card-header flex-between">
+        <h3><i class="fas fa-info-circle" style="color:var(--accent); margin-right:0.4rem;"></i> Shipment Detail — <span id="detail-id"></span></h3>
+        <button onclick="document.getElementById('detail-panel').style.display='none'" class="btn btn-outline btn-sm"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="detail-content" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:1rem;">
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+  const token = localStorage.getItem('pharma_token');
+  const userStr = localStorage.getItem('pharma_user');
+  if (!token || !userStr) { window.location.href = '/login'; }
+  const user = JSON.parse(userStr || '{}');
+  document.getElementById('user-name').textContent = user.name || '';
+
+  function logout() {
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    localStorage.clear();
+    window.location.href = '/login';
+  }
+
+  function toast(msg, type = 'info') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+    t.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  }
+
+  const headers = { 'Authorization': `Bearer ${token}` };
+  let allShipments = [];
+
+  async function loadShipments() {
+    try {
+      const res = await fetch('/api/shipments', { headers, credentials: 'include' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      allShipments = await res.json();
+      document.getElementById('count-transit').textContent = allShipments.filter(s => s.status==='in-transit').length;
+      document.getElementById('count-alert').textContent = allShipments.filter(s => s.status==='alert').length;
+      document.getElementById('count-delivered').textContent = allShipments.filter(s => s.status==='delivered').length;
+      renderTable(allShipments);
+    } catch(e) {
+      document.getElementById('shipments-body').innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--danger); padding:2rem;">Failed to load shipments.</td></tr>';
+    }
+  }
+
+  function filterShipments() {
+    const f = document.getElementById('filter-status').value;
+    const filtered = f === 'all' ? allShipments : allShipments.filter(s => s.status === f);
+    renderTable(filtered);
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('shipments-body');
+    const statusBadge = { 'in-transit': 'badge-accent', 'alert': 'badge-danger', 'delivered': 'badge-success' };
+    const statusLabel = { 'in-transit': '🚛 In Transit', 'alert': '🚨 Alert', 'delivered': '✅ Delivered' };
+    tbody.innerHTML = data.map(s => {
+      const tempClass = s.temp > 8 ? 'temp-crit' : s.temp < 1 ? 'temp-crit' : s.temp > 7 ? 'temp-warn' : 'temp-normal';
+      const batColor = s.battery < 30 ? 'var(--danger)' : s.battery < 60 ? 'var(--warning)' : 'var(--success)';
+      const batIcon = s.battery < 30 ? '🔴' : s.battery < 60 ? '🟡' : '🟢';
+      const ping = new Date(s.lastPing);
+      return `<tr style="cursor:pointer;" onclick="showDetail('${s.id}')">
+        <td><strong>${s.id}</strong></td>
+        <td>${s.drug}</td>
+        <td>${s.client}</td>
+        <td style="font-size:0.82rem;">${s.origin} → ${s.destination}</td>
+        <td><span class="${tempClass}">${s.temp}°C</span></td>
+        <td>${s.humidity}%</td>
+        <td><span style="color:${batColor};">${batIcon} ${s.battery}%</span></td>
+        <td><span class="badge ${statusBadge[s.status]}">${statusLabel[s.status]}</span></td>
+        <td style="font-size:0.78rem; color:var(--text-muted);">${ping.toLocaleTimeString()}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:2rem;">No shipments found.</td></tr>';
+  }
+
+  function showDetail(id) {
+    const s = allShipments.find(x => x.id === id);
+    if (!s) return;
+    document.getElementById('detail-id').textContent = id;
+    const tempClass = s.temp > 8 ? 'text-danger' : 'text-success';
+    document.getElementById('detail-content').innerHTML = `
+      <div style="text-align:center; padding:1rem; background:rgba(0,188,212,0.06); border-radius:8px; border:1px solid var(--border);">
+        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.5rem;">Drug</div>
+        <div style="font-weight:700;">${s.drug}</div>
+      </div>
+      <div style="text-align:center; padding:1rem; background:rgba(0,188,212,0.06); border-radius:8px; border:1px solid var(--border);">
+        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.5rem;">Temperature</div>
+        <div class="${tempClass}" style="font-size:1.5rem; font-weight:800;">${s.temp}°C</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">Threshold: 2–8°C</div>
+      </div>
+      <div style="text-align:center; padding:1rem; background:rgba(0,188,212,0.06); border-radius:8px; border:1px solid var(--border);">
+        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.5rem;">Humidity</div>
+        <div style="font-size:1.5rem; font-weight:800;">${s.humidity}%</div>
+      </div>
+      <div style="text-align:center; padding:1rem; background:rgba(0,188,212,0.06); border-radius:8px; border:1px solid var(--border);">
+        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.5rem;">Battery</div>
+        <div style="font-size:1.5rem; font-weight:800; color:${s.battery<30?'var(--danger)':s.battery<60?'var(--warning)':'var(--success)'};">${s.battery}%</div>
+      </div>
+      <div style="text-align:center; padding:1rem; background:rgba(0,188,212,0.06); border-radius:8px; border:1px solid var(--border);">
+        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.5rem;">Client</div>
+        <div style="font-weight:700;">${s.client}</div>
+      </div>
+      <div style="text-align:center; padding:1rem; background:rgba(0,188,212,0.06); border-radius:8px; border:1px solid var(--border);">
+        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.5rem;">Route</div>
+        <div style="font-weight:700; font-size:0.88rem;">${s.origin} → ${s.destination}</div>
+      </div>`;
+    document.getElementById('detail-panel').style.display = 'block';
+    document.getElementById('detail-panel').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  loadShipments();
+  setInterval(loadShipments, 30000);
+</script>
+</body>
+</html>

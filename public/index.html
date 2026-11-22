@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pharma Cold-Chain Monitor — IoT Vaccine & Medicine Fridge Surveillance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/css/main.css"/>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="container flex-between">
+    <a href="/" class="brand">
+      <div class="brand-icon">❄️</div>
+      <span>Pharma Cold-Chain Monitor</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/dashboard" class="nav-link"><i class="fas fa-desktop"></i> Live Monitor</a></li>
+      <li><a href="/simulator" class="nav-link"><i class="fas fa-flask"></i> Test Lab</a></li>
+      <li><a href="/hardware" class="nav-link"><i class="fas fa-microchip"></i> Hardware & Wiring</a></li>
+      <li><a href="/audit" class="nav-link"><i class="fas fa-link"></i> Hash Chain Audit</a></li>
+      <li><a href="/presentation" class="nav-link"><i class="fas fa-chalkboard-teacher"></i> Slides & Viva</a></li>
+    </ul>
+    <div style="display:flex; gap:0.6rem;">
+      <a href="/login" class="btn btn-outline btn-sm">Sign In</a>
+      <a href="/dashboard" class="btn btn-teal btn-sm"><i class="fas fa-play"></i> Open Dashboard</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section style="padding: 4.5rem 0 3.5rem; position: relative; overflow: hidden; background: radial-gradient(ellipse at top right, rgba(6,182,212,0.12) 0%, transparent 60%), radial-gradient(ellipse at bottom left, rgba(245,158,11,0.08) 0%, transparent 50%);">
+  <div class="container" style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap: 3rem; align-items: center;">
+    <div>
+      <div class="badge badge-gold" style="margin-bottom: 1.2rem;">
+        <i class="fas fa-award"></i> 4-Day IoT Build Plan · Nov 2026
+      </div>
+      <h1 style="margin-bottom: 1.25rem;">
+        An IoT device that tells you <span class="text-teal">WHY</span> a medicine fridge is failing.
+      </h1>
+      <p style="font-size: 1.15rem; color: var(--text-muted); margin-bottom: 2rem; max-width: 580px;">
+        India loses an estimated <strong class="text-gold">₹92,000 crore</strong> of perishable goods every year. Commercial pharma loggers cost ₹5,000–₹20,000 and only record numbers. Our prototype costs <strong class="text-teal">₹1,500</strong>, alerts in real-time, and diagnoses the root cause.
+      </p>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2.5rem;">
+        <a href="/dashboard" class="btn btn-teal btn-lg">
+          <i class="fas fa-bolt"></i> View Live Dashboard
+        </a>
+        <a href="/simulator" class="btn btn-outline-gold btn-lg">
+          <i class="fas fa-vial"></i> Test Failure Rules
+        </a>
+        <a href="/api/report.pdf" class="btn btn-outline btn-lg" target="_blank">
+          <i class="fas fa-file-pdf"></i> Download Audit PDF
+        </a>
+      </div>
+
+      <!-- Key Metrics Strip -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+        <div>
+          <div style="font-size: 1.7rem; font-weight: 800; color: var(--gold);">₹1,500</div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Hardware Prototype BOM</div>
+        </div>
+        <div>
+          <div style="font-size: 1.7rem; font-weight: 800; color: var(--teal);">+2°C to +8°C</div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Safe Vaccine Range</div>
+        </div>
+        <div>
+          <div style="font-size: 1.7rem; font-weight: 800; color: var(--success);">< 10 sec</div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Local Buzzer + WiFi Alert</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Preview Card & OLED Simulator -->
+    <div>
+      <div class="card" style="border-color: var(--teal); box-shadow: var(--teal-glow);">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="live-dot"></span> Live ESP32 Fridge Node
+          </div>
+          <span class="badge badge-teal">Wokwi & Hardware Ready</span>
+        </div>
+
+        <!-- OLED Screen preview -->
+        <div class="oled-frame" style="margin-bottom: 1.25rem;">
+          <div class="flex-between">
+            <span class="oled-temp" id="hero-temp">4.2 °C</span>
+            <span style="font-size:0.75rem; color:#38bdf8;">ESP32 · OLED</span>
+          </div>
+          <div class="oled-line" id="hero-door">DOOR: CLOSED</div>
+          <div class="oled-line" style="color:#4ade80;" id="hero-status">Status: OK (2°C - 8°C)</div>
+        </div>
+
+        <!-- Diagnosis Wow-Moment -->
+        <div id="hero-diag-box" style="padding: 0.9rem 1.1rem; border-radius: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+          <span style="font-size: 1.8rem;" id="hero-diag-icon">🛡️</span>
+          <div>
+            <div style="font-weight: 700; color: #fff; font-size: 0.95rem;" id="hero-diag-cause">Normal Operation</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);" id="hero-diag-desc">Fridge temperature safely inside WHO +2°C to +8°C window</div>
+          </div>
+        </div>
+
+        <!-- Quick Interactive test buttons -->
+        <div style="font-size: 0.75rem; color: var(--gold); font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">
+          Try instant failure simulation:
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <button class="btn btn-outline btn-sm" onclick="triggerHero('door_open')">🚪 Leave Door Open</button>
+          <button class="btn btn-outline btn-sm" onclick="triggerHero('power_cut')">🔌 Cut Power (Battery)</button>
+          <button class="btn btn-outline btn-sm" onclick="triggerHero('compressor_failure')">⚙️ Compressor Fail</button>
+          <button class="btn btn-outline btn-sm" onclick="triggerHero('normal')">✅ Reset to Normal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- The 5 Diagnosis Rules (The Wow Moment) -->
+<section style="padding: 4rem 0; background: var(--bg-panel); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="text-center" style="max-width: 650px; margin: 0 auto 3rem;">
+      <div class="badge badge-gold" style="margin-bottom: 0.8rem;">Diagnosis Rules (Your Wow Moment)</div>
+      <h2>Not just an alert — an explanation.</h2>
+      <p>Existing data loggers beep after vaccines are already ruined. Our firmware and backend diagnose the exact physical failure mechanism in seconds.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+      <div class="card">
+        <div style="font-size: 2rem; margin-bottom: 0.75rem;">🚪</div>
+        <h4 style="color: var(--teal); margin-bottom: 0.4rem;">Door Left Open</h4>
+        <div style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--gold); margin-bottom: 0.6rem;">Temp > 8°C + Door OPEN</div>
+        <p style="font-size: 0.85rem;">Human error. Someone failed to close the latch. Local OLED and buzzer alert nursing staff immediately.</p>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 2rem; margin-bottom: 0.75rem;">⚡</div>
+        <h4 style="color: var(--teal); margin-bottom: 0.4rem;">Power Cut</h4>
+        <div style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--gold); margin-bottom: 0.6rem;">Temp > 8°C + Door CLOSED + Battery</div>
+        <p style="font-size: 0.85rem;">Mains supply dropped. Voltage divider detects loss of 5V rail while backup battery keeps ESP32 running.</p>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 2rem; margin-bottom: 0.75rem;">⚙️</div>
+        <h4 style="color: var(--teal); margin-bottom: 0.4rem;">Compressor Failure</h4>
+        <div style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--gold); margin-bottom: 0.6rem;">Temp > 8°C + Closed + Rising 10+ min</div>
+        <p style="font-size: 0.85rem;">The fridge is plugged in and shut, yet temperature climbs steadily over 12 readings (>1.0°C rise). Hardware fault.</p>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 2rem; margin-bottom: 0.75rem;">🧊</div>
+        <h4 style="color: var(--teal); margin-bottom: 0.4rem;">Freezing Risk</h4>
+        <div style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--gold); margin-bottom: 0.6rem;">Temp < 2.0°C</div>
+        <p style="font-size: 0.85rem;">Vaccines can be destroyed by freezing just as easily as overheating. Alerts before liquid crystals crack vials.</p>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 2rem; margin-bottom: 0.75rem;">📡</div>
+        <h4 style="color: var(--teal); margin-bottom: 0.4rem;">Device Offline</h4>
+        <div style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--gold); margin-bottom: 0.6rem;">No packet for 60s</div>
+        <p style="font-size: 0.85rem;">Heartbeat check flags lost connectivity immediately so dead batteries or Wi-Fi failures don't hide excursions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Superstar Features: Spoilage Clock & Tamper-Evident Hash Chain -->
+<section style="padding: 4.5rem 0;">
+  <div class="container">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
+      <div>
+        <div class="badge badge-teal" style="margin-bottom: 1rem;">Superstar Feature 1</div>
+        <h2 style="margin-bottom: 1rem;">The Spoilage Clock</h2>
+        <p style="margin-bottom: 1.25rem;">
+          A spoiled vaccine looks identical to a good one. Real vials carry heat-sensitive Vaccine Vial Monitor (VVM) labels. Our backend tracks total seconds spent above 8°C across any Wi-Fi drops (capped at 60s gaps) and gives a clear verdict:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+          <div style="padding: 0.75rem 1rem; border-radius: 8px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--success);">
+            <strong style="color: var(--success);">SAFE</strong> — Less than 50% of the temperature excursion budget used.
+          </div>
+          <div style="padding: 0.75rem 1rem; border-radius: 8px; background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--gold);">
+            <strong style="color: var(--gold);">CAUTION</strong> — 50% to 99% of thermal budget consumed. Secondary check recommended.
+          </div>
+          <div style="padding: 0.75rem 1rem; border-radius: 8px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid var(--danger);">
+            <strong style="color: var(--danger);">QUARANTINE (DO NOT USE)</strong> — Budget fully depleted. High risk of denaturation.
+          </div>
+        </div>
+        <a href="/dashboard" class="btn btn-teal"><i class="fas fa-stopwatch"></i> Inspect Spoilage Clock</a>
+      </div>
+
+      <div>
+        <div class="badge badge-gold" style="margin-bottom: 1rem;">Superstar Feature 2</div>
+        <h2 style="margin-bottom: 1rem;">Tamper-Evident Hash Chain</h2>
+        <p style="margin-bottom: 1.25rem;">
+          Corrupt facilities sometimes alter temperature logs to hide spoilage. Every reading in our system includes a cryptographic SHA-256 hash incorporating the previous record's hash. Changing even a single past reading breaks every block thereafter.
+        </p>
+        <div class="code-box" style="margin-bottom: 1.5rem;">
+<span style="color:#94a3b8;">// Hash Chaining Algorithm (Page 6 of Build Plan)</span>
+<span style="color:#38bdf8;">const</span> prev = chain.length ? chain[chain.length - 1].hash : <span style="color:#a7f3d0;">'GENESIS'</span>;
+<span style="color:#38bdf8;">const</span> record = { ...reading, prev, hash: sha256(prev + JSON.stringify(reading)) };
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <a href="/audit" class="btn btn-outline-gold"><i class="fas fa-link"></i> Open Hash Chain Audit</a>
+          <a href="/api/report.pdf" class="btn btn-teal" target="_blank"><i class="fas fa-download"></i> Export PDF Report</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Hardware & Bill of Materials Preview -->
+<section style="padding: 4rem 0; background: var(--bg-panel); border-top: 1px solid var(--border);">
+  <div class="container">
+    <div class="flex-between" style="flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+      <div>
+        <div class="badge badge-gold">₹1,500 Hardware Bill of Materials</div>
+        <h2 style="margin-top: 0.5rem;">Off-the-shelf parts. Commercial-grade results.</h2>
+      </div>
+      <a href="/hardware" class="btn btn-outline"><i class="fas fa-microchip"></i> Full Wiring Diagram & Arduino Code</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+      <div class="card text-center">
+        <div style="font-size: 2rem;">🧠</div>
+        <h4 style="margin: 0.5rem 0 0.2rem;">ESP32 DevKit</h4>
+        <p style="font-size: 0.8rem;">Wi-Fi, Dual-Core, ADC</p>
+        <div style="color: var(--gold); font-weight: 700; margin-top: 0.5rem;">~ ₹450</div>
+      </div>
+      <div class="card text-center">
+        <div style="font-size: 2rem;">🌡️</div>
+        <h4 style="margin: 0.5rem 0 0.2rem;">DS18B20 Probe</h4>
+        <p style="font-size: 0.8rem;">Waterproof, 1-Wire (GPIO4)</p>
+        <div style="color: var(--gold); font-weight: 700; margin-top: 0.5rem;">~ ₹200</div>
+      </div>
+      <div class="card text-center">
+        <div style="font-size: 2rem;">🧲</div>
+        <h4 style="margin: 0.5rem 0 0.2rem;">Reed Switch + Magnet</h4>
+        <p style="font-size: 0.8rem;">Door Sensor (GPIO14)</p>
+        <div style="color: var(--gold); font-weight: 700; margin-top: 0.5rem;">~ ₹80</div>
+      </div>
+      <div class="card text-center">
+        <div style="font-size: 2rem;">📺</div>
+        <h4 style="margin: 0.5rem 0 0.2rem;">0.96" SSD1306 OLED</h4>
+        <p style="font-size: 0.8rem;">I2C Screen (GPIO21/22)</p>
+        <div style="color: var(--gold); font-weight: 700; margin-top: 0.5rem;">~ ₹220</div>
+      </div>
+      <div class="card text-center">
+        <div style="font-size: 2rem;">🔔</div>
+        <h4 style="margin: 0.5rem 0 0.2rem;">Buzzer + Dual LEDs</h4>
+        <p style="font-size: 0.8rem;">Local Audio/Visual Alarm</p>
+        <div style="color: var(--gold); font-weight: 700; margin-top: 0.5rem;">~ ₹70</div>
+      </div>
+      <div class="card text-center">
+        <div style="font-size: 2rem;">🔋</div>
+        <h4 style="margin: 0.5rem 0 0.2rem;">Power-Cut Sense</h4>
+        <p style="font-size: 0.8rem;">Voltage Divider (GPIO34)</p>
+        <div style="color: var(--gold); font-weight: 700; margin-top: 0.5rem;">~ ₹30</div>
+      </div>
+    </div>
+
+    <!-- Honest Caveat Notice (Page 1 & 12 of PDF) -->
+    <div style="margin-top: 2.5rem; padding: 1.25rem 1.5rem; border-radius: 12px; background: rgba(245, 158, 11, 0.08); border: 1.5px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; gap: 1rem;">
+      <span style="font-size: 2rem;">⚠️</span>
+      <div style="font-size: 0.88rem; color: #fde68a;">
+        <strong>Honest Prototype Caveat (From Build Plan Page 1):</strong>
+        This is a prototype with a hobby-grade DS18B20 sensor (±0.5°C), not a certified medical device. The compressor rule is a heuristic based on a steady temperature rise. Commercial medical deployment requires calibrated laboratory sensors.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="padding: 2.5rem 0; border-top: 1px solid var(--border); text-align: center; font-size: 0.85rem; color: var(--text-dim);">
+  <div class="container flex-between" style="flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span style="color: var(--text); font-weight: 700;">Pharma Cold-Chain Monitor</span> · 4-Day Build Plan (Nov 22–25, 2026)
+    </div>
+    <div style="display: flex; gap: 1.5rem;">
+      <a href="/dashboard">Live App</a>
+      <a href="/simulator">Test Lab</a>
+      <a href="/hardware">Firmware & BOM</a>
+      <a href="/presentation">Viva Q&A</a>
+      <a href="/api/report.pdf" target="_blank">Compliance PDF</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  async function triggerHero(scenario) {
+    try {
+      const res = await fetch('/api/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenario })
+      });
+      const data = await res.json();
+      updateHeroDisplay(data.reading, data.diagnosis);
+    } catch (e) { console.error(e); }
+  }
+
+  function updateHeroDisplay(r, diag) {
+    const tempEl = document.getElementById('hero-temp');
+    const doorEl = document.getElementById('hero-door');
+    const statusEl = document.getElementById('hero-status');
+    const boxEl = document.getElementById('hero-diag-box');
+    const iconEl = document.getElementById('hero-diag-icon');
+    const causeEl = document.getElementById('hero-diag-cause');
+    const descEl = document.getElementById('hero-diag-desc');
+
+    tempEl.textContent = `${r.temp.toFixed(1)} °C`;
+    doorEl.textContent = `DOOR: ${r.door ? 'OPEN' : 'CLOSED'}`;
+
+    if (diag.level === 'ok') {
+      tempEl.style.color = '#fff';
+      statusEl.textContent = 'Status: OK (2°C - 8°C)';
+      statusEl.style.color = '#4ade80';
+      boxEl.style.background = 'rgba(16, 185, 129, 0.12)';
+      boxEl.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+      iconEl.textContent = '🛡️';
+      causeEl.textContent = 'Normal Operation';
+      descEl.textContent = 'Fridge temperature safely inside WHO +2°C to +8°C window';
+    } else {
+      tempEl.style.color = '#f87171';
+      statusEl.textContent = 'ALERT: ' + diag.cause;
+      statusEl.style.color = '#ef4444';
+      boxEl.style.background = 'rgba(239, 68, 68, 0.15)';
+      boxEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+      iconEl.textContent = '🚨';
+      causeEl.textContent = diag.cause;
+      descEl.textContent = 'Local buzzer sounding (GPIO18) | Cause: ' + diag.cause;
+    }
+  }
+
+  // Poll status every 4 seconds
+  setInterval(async () => {
+    try {
+      const res = await fetch('/api/status');
+      const data = await res.json();
+      if (data.latest && data.diagnosis) {
+        updateHeroDisplay(data.latest, data.diagnosis);
+      }
+    } catch(e) {}
+  }, 4000);
+</script>
+
+</body>
+</html>

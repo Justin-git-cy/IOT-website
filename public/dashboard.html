@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Fridge Monitor & Diagnosis — Pharma Cold-Chain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/css/main.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="container flex-between">
+    <a href="/" class="brand">
+      <div class="brand-icon">❄️</div>
+      <span>Pharma Cold-Chain Monitor</span>
+    </a>
+    <div style="display:flex; align-items:center; gap: 1rem;">
+      <div style="display:flex; align-items:center; gap: 0.5rem; font-size: 0.82rem; color: var(--text-muted);">
+        <span class="live-dot" id="header-dot"></span>
+        <span id="header-status-text">Connected to ESP32 Node</span>
+      </div>
+      <div style="display:flex; align-items:center; gap: 0.75rem;">
+        <span id="user-display" style="font-size:0.85rem; font-weight:600; color:var(--gold);"></span>
+        <a href="/api/report.pdf" target="_blank" class="btn btn-teal btn-sm"><i class="fas fa-file-pdf"></i> Download PDF</a>
+        <button onclick="handleLogout()" class="btn btn-outline btn-sm"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- App Layout -->
+<div class="app-wrapper">
+  <!-- Sidebar -->
+  <aside class="app-sidebar">
+    <div class="sidebar-heading">Cold-Chain Navigation</div>
+    <a href="/dashboard" class="sidebar-link active"><i class="fas fa-chart-line"></i> Live Monitor</a>
+    <a href="/simulator" class="sidebar-link"><i class="fas fa-vial"></i> Test Lab & Simulator</a>
+    <a href="/audit" class="sidebar-link"><i class="fas fa-link"></i> Hash Chain Audit</a>
+    <a href="/hardware" class="sidebar-link"><i class="fas fa-microchip"></i> Hardware & Wiring</a>
+    <a href="/presentation" class="sidebar-link"><i class="fas fa-chalkboard-teacher"></i> Presentation Slides</a>
+
+    <div class="sidebar-heading" style="margin-top: 1rem;">Device Controls</div>
+    <div style="padding: 0.5rem 0.85rem; display: flex; flex-direction: column; gap: 0.5rem;">
+      <button class="btn btn-outline btn-sm" onclick="triggerPreset('normal')">✅ Normal (+4°C)</button>
+      <button class="btn btn-outline btn-sm" onclick="triggerPreset('door_open')">🚪 Open Door (+9°C)</button>
+      <button class="btn btn-outline btn-sm" onclick="triggerPreset('power_cut')">🔌 Cut Power (+10°C)</button>
+      <button class="btn btn-outline btn-sm" onclick="triggerPreset('compressor_failure')">⚙️ Compressor Rise</button>
+      <button class="btn btn-outline btn-sm" onclick="triggerPreset('freezing')">🧊 Freezing (0.8°C)</button>
+    </div>
+
+    <div style="margin-top: auto; padding: 1rem 0.5rem 0; border-top: 1px solid var(--border);">
+      <div style="font-size: 0.72rem; color: var(--text-dim); line-height: 1.4;">
+        <strong style="color: var(--gold);">Local Buzzer Rule:</strong><br/>
+        Hardware ESP32 sounds buzzer locally on GPIO18. App only observes; cloud drops never silence the alarm.
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main View -->
+  <main class="app-main">
+    <!-- Header row -->
+    <div class="flex-between" style="flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <h1 style="font-size: 1.6rem; margin-bottom: 0.2rem;">Medicine Fridge Live Telemetry</h1>
+        <p style="font-size: 0.85rem;">Continuous DS18B20 1-Wire thermal log, reed switch surveillance, & automated failure diagnosis</p>
+      </div>
+      <div style="display: flex; gap: 0.6rem; align-items: center;">
+        <span class="badge badge-gold" id="batch-badge">Batch #V-2026-11</span>
+        <button class="btn btn-outline btn-sm" onclick="fetchStatus()"><i class="fas fa-sync-alt"></i> Refresh</button>
+      </div>
+    </div>
+
+    <!-- Offline Alert Banner if >60s (Page 2 & 8) -->
+    <div id="offline-banner" style="display:none; padding: 1rem 1.5rem; border-radius: 12px; background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); margin-bottom: 1.5rem; color: #fca5a5;">
+      <div style="display:flex; align-items:center; gap: 0.75rem;">
+        <span style="font-size: 1.8rem;">⚠️</span>
+        <div>
+          <strong style="font-size: 1rem;">DEVICE OFFLINE (No data for &gt; 60 seconds)</strong>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Check ESP32 Wi-Fi connection, hotspot SSID, or power supply. Node is buffering to flash/RAM.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THE BIG WOW-MOMENT DIAGNOSIS CARD (Page 1 & 5 of PDF) -->
+    <div class="diagnosis-banner ok" id="diagnosis-card">
+      <div style="display: flex; align-items: center; gap: 1.5rem;">
+        <div class="diag-icon" id="diag-icon">🛡️</div>
+        <div>
+          <div class="badge badge-success" id="diag-badge" style="margin-bottom: 0.35rem;">NORMAL OPERATION</div>
+          <div class="diag-title" id="diag-cause">Fridge Safe & Within Limits</div>
+          <div class="diag-desc" id="diag-desc">Temperature is stable between +2.0°C and +8.0°C. Door is firmly shut. Mains electricity active.</div>
+        </div>
+      </div>
+      <div style="text-align: right; flex-shrink: 0;">
+        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em;">Last Telemetry Ping</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: var(--text);" id="last-ping-time">Just now</div>
+        <div style="font-size: 0.78rem; color: var(--gold);" id="ping-gap-display">0s ago</div>
+      </div>
+    </div>
+
+    <!-- Top Key Metrics Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+      <!-- Temp Card -->
+      <div class="card">
+        <div class="card-header" style="margin-bottom: 0.5rem; padding-bottom: 0.4rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--teal); text-transform: uppercase;">Temperature (DS18B20)</span>
+          <span class="badge badge-teal">GPIO4</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+          <div style="font-size: 2.4rem; font-weight: 800;" id="metric-temp">4.2°C</div>
+          <span style="font-size: 0.8rem; color: var(--success);" id="temp-sublabel">Compliant (+2 to +8°C)</span>
+        </div>
+      </div>
+
+      <!-- Door Sensor Card -->
+      <div class="card">
+        <div class="card-header" style="margin-bottom: 0.5rem; padding-bottom: 0.4rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--gold); text-transform: uppercase;">Door Sensor (Reed Switch)</span>
+          <span class="badge badge-gold">GPIO14</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.2rem;">
+          <span style="font-size: 2rem;" id="door-icon">🔒</span>
+          <div>
+            <div style="font-size: 1.3rem; font-weight: 800;" id="door-status">CLOSED</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Magnetic reed contact</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mains Power Card -->
+      <div class="card">
+        <div class="card-header" style="margin-bottom: 0.5rem; padding-bottom: 0.4rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--teal); text-transform: uppercase;">Power Status (Voltage Divider)</span>
+          <span class="badge badge-teal">GPIO34 ADC</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.2rem;">
+          <span style="font-size: 2rem;" id="mains-icon">⚡</span>
+          <div>
+            <div style="font-size: 1.3rem; font-weight: 800;" id="mains-status">MAINS ACTIVE</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">5V Grid Supply Connected</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cryptographic Chain Status -->
+      <div class="card">
+        <div class="card-header" style="margin-bottom: 0.5rem; padding-bottom: 0.4rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--gold); text-transform: uppercase;">Tamper-Evident Chain</span>
+          <a href="/audit" style="font-size: 0.75rem;">View Chain &rarr;</a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.2rem;">
+          <span style="font-size: 1.8rem;" id="chain-badge-icon">🔒</span>
+          <div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: var(--success);" id="chain-status-text">HISTORY VERIFIED</div>
+            <div style="font-size: 0.72rem; color: var(--text-dim);" id="chain-records-count">SHA-256 Chained blocks</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts & Spoilage Clock Row -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+      <!-- Temperature Line Chart with 2-8°C shaded band (Page 5) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-chart-area" style="color:var(--teal);"></i> Live Temperature Excursion Chart
+          </div>
+          <span style="font-size: 0.8rem; color: var(--gold);">Green Band: WHO +2°C to +8°C Standard</span>
+        </div>
+        <div style="position: relative; height: 280px;">
+          <canvas id="tempChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Spoilage Clock & OLED Display -->
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <!-- Spoilage Clock Card (Page 2 & 6) -->
+        <div class="card card-gold">
+          <div class="card-header" style="padding-bottom: 0.4rem; margin-bottom: 0.4rem;">
+            <div class="card-title" style="font-size: 0.95rem;">
+              <i class="fas fa-stopwatch" style="color: var(--gold);"></i> Spoilage Clock
+            </div>
+            <span class="badge badge-success" id="spoilage-verdict">SAFE</span>
+          </div>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">
+            Running total of time medicines spent above 8°C. Gaps capped at 60s for Wi-Fi drops.
+          </p>
+
+          <div class="spoilage-meter">
+            <div class="spoilage-fill" id="spoilage-progress" style="width: 0%; background: var(--success);"></div>
+          </div>
+
+          <div class="flex-between" style="font-size: 0.78rem; margin-top: 0.3rem;">
+            <span>Excursion: <strong id="spoilage-sec" class="text-gold">0s</strong> / <span id="spoilage-budget">1800s</span></span>
+            <span id="spoilage-percent">0%</span>
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.85rem;">
+            <button class="btn btn-outline btn-sm" onclick="toggleDemoBudget()" id="budget-btn">⚡ Set 2-Min Demo Mode</button>
+            <button class="btn btn-outline btn-sm" onclick="resetSpoilageClock()"><i class="fas fa-redo"></i> Reset Batch</button>
+          </div>
+        </div>
+
+        <!-- Simulated OLED Screen (Page 4 of PDF) -->
+        <div class="card" style="padding: 1rem;">
+          <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.5rem; display:flex; justify-content:space-between;">
+            <span>0.96" SSD1306 OLED Mirror</span>
+            <span>GPIO21/22 I2C</span>
+          </div>
+          <div class="oled-frame">
+            <div class="flex-between">
+              <span class="oled-temp" id="oled-temp-val">4.2 C</span>
+              <span style="font-size:0.75rem; color:#7dd3fc;">DS18B20</span>
+            </div>
+            <div class="oled-line" id="oled-door-val">DOOR: closed</div>
+            <div class="oled-line" id="oled-status-val" style="color: #4ade80;">Status: OK</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Telemetry History Table & Tamper Demonstration -->
+    <div class="card" style="padding: 0;">
+      <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text);">
+            <i class="fas fa-list-alt" style="color: var(--teal); margin-right: 0.4rem;"></i>
+            Recent Telemetry Stream (Last 10 Records)
+          </h3>
+          <span style="font-size: 0.76rem; color: var(--text-muted);">Stored with SHA-256 hash chaining to ensure tamper-evidence.</span>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-danger btn-sm" onclick="tamperRecent()"><i class="fas fa-bug"></i> Tamper Record #5 (Live Demo)</button>
+          <button class="btn btn-outline btn-sm" onclick="repairChain()"><i class="fas fa-wrench"></i> Repair Chain</button>
+        </div>
+      </div>
+      <div class="table-wrap" style="border: none; border-radius: 0 0 var(--radius) var(--radius);">
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Temperature</th>
+              <th>Door State</th>
+              <th>Power Supply</th>
+              <th>Diagnosed Cause</th>
+              <th>SHA-256 Block Hash</th>
+            </tr>
+          </thead>
+          <tbody id="readings-tbody">
+            <tr><td colspan="6" style="text-align:center; padding: 2rem;"><div class="live-dot"></div> Loading stream...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-box"></div>
+
+<script>
+  let chartInstance = null;
+  let isDemoBudget = false;
+
+  // Auth info
+  const userStr = localStorage.getItem('pharma_user');
+  if (userStr) {
+    try {
+      const u = JSON.parse(userStr);
+      document.getElementById('user-display').textContent = u.name;
+    } catch(e) {}
+  }
+
+  function handleLogout() {
+    localStorage.clear();
+    fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login';
+  }
+
+  function toast(msg, icon = 'ℹ️') {
+    const box = document.getElementById('toast-box');
+    const div = document.createElement('div');
+    div.className = 'toast-msg';
+    div.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+    box.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+  }
+
+  // ─── Initialize Chart ────────────────────────────────────────────────────────
+  function initChart() {
+    const ctx = document.getElementById('tempChart').getContext('2d');
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Probe Temperature (°C)',
+            data: [],
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            borderWidth: 2.5,
+            pointRadius: 3,
+            pointBackgroundColor: '#06b6d4',
+            tension: 0.35,
+            fill: true
+          },
+          {
+            label: 'Upper Threshold (8.0°C)',
+            data: [],
+            borderColor: 'rgba(239, 68, 68, 0.7)',
+            borderDash: [5, 5],
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: false
+          },
+          {
+            label: 'Lower Threshold (2.0°C)',
+            data: [],
+            borderColor: 'rgba(59, 130, 246, 0.7)',
+            borderDash: [5, 5],
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#94a3b8', font: { size: 11 } } },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            borderColor: 'rgba(6,182,212,0.3)',
+            borderWidth: 1,
+            titleColor: '#fff',
+            bodyColor: '#e2e8f0'
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 10 },
+            grid: { color: 'rgba(255, 255, 255, 0.04)' }
+          },
+          y: {
+            suggestedMin: 0,
+            suggestedMax: 12,
+            ticks: { color: '#64748b', callback: v => v + '°C' },
+            grid: { color: 'rgba(255, 255, 255, 0.04)' }
+          }
+        }
+      }
+    });
+  }
+
+  // ─── Fetch Full Status & History ─────────────────────────────────────────────
+  async function fetchStatus() {
+    try {
+      const [resStatus, resReadings] = await Promise.all([
+        fetch('/api/status'),
+        fetch('/api/readings')
+      ]);
+
+      const status = await resStatus.json();
+      const readingList = await resReadings.json();
+
+      updateUI(status, readingList);
+    } catch (e) {
+      console.error(e);
+      document.getElementById('header-status-text').textContent = 'Backend offline or reconnecting...';
+      document.getElementById('header-dot').className = 'live-dot alert';
+    }
+  }
+
+  function updateUI(status, list) {
+    const r = status.latest;
+    const diag = status.diagnosis;
+    const clock = status.spoilageClock;
+    const chain = status.chainStatus;
+
+    if (!r || !diag) return;
+
+    // 1. Header & Offline Detection
+    const headerDot = document.getElementById('header-dot');
+    const headerText = document.getElementById('header-status-text');
+    const offlineBanner = document.getElementById('offline-banner');
+
+    if (status.isOffline) {
+      headerDot.className = 'live-dot alert';
+      headerText.textContent = `Node Offline (${status.secondsSinceLastPing}s ago)`;
+      offlineBanner.style.display = 'block';
+    } else {
+      headerDot.className = 'live-dot';
+      headerText.textContent = 'ESP32 Node Streaming Active';
+      offlineBanner.style.display = 'none';
+    }
+
+    // 2. Big Diagnosis Banner
+    const diagCard = document.getElementById('diagnosis-card');
+    const diagIcon = document.getElementById('diag-icon');
+    const diagBadge = document.getElementById('diag-badge');
+    const diagCause = document.getElementById('diag-cause');
+    const diagDesc = document.getElementById('diag-desc');
+
+    if (diag.level === 'ok') {
+      diagCard.className = 'diagnosis-banner ok';
+      diagIcon.textContent = '🛡️';
+      diagBadge.className = 'badge badge-success';
+      diagBadge.textContent = 'NORMAL OPERATION';
+      diagCause.textContent = 'Safe & Compliant (+2°C to +8°C)';
+      diagDesc.textContent = 'Vaccine fridge temperature is stable. Door is closed and grid power is continuous.';
+    } else {
+      diagCard.className = 'diagnosis-banner alert';
+      diagIcon.textContent = '🚨';
+      diagBadge.className = 'badge badge-danger';
+      diagBadge.textContent = 'ALERT: ' + diag.cause.toUpperCase();
+      diagCause.textContent = diag.cause;
+
+      // Provide clear actionable reason per PDF
+      if (diag.code === 'DOOR_OPEN') {
+        diagDesc.textContent = 'Human Error: Door left open while temperature crossed 8°C. Local buzzer sounding on GPIO18.';
+      } else if (diag.code === 'POWER_CUT') {
+        diagDesc.textContent = 'Infrastructure Failure: Grid power lost while temperature crossed 8°C. ESP32 running on backup battery.';
+      } else if (diag.code === 'COMPRESSOR_FAILURE') {
+        diagDesc.textContent = 'Hardware Failure: Door shut and mains active, but temperature steadily climbing for 10+ minutes (>1°C rise).';
+      } else if (diag.code === 'FREEZING_RISK') {
+        diagDesc.textContent = 'Freezing Danger: Temperature below 2.0°C. High risk of vaccine vial cracking or protein crystallization.';
+      } else {
+        diagDesc.textContent = 'Temperature out of safe range. Local buzzer active.';
+      }
+    }
+
+    document.getElementById('last-ping-time').textContent = new Date(r.ts).toLocaleTimeString();
+    document.getElementById('ping-gap-display').textContent = `${status.secondsSinceLastPing || 0}s ago`;
+
+    // 3. Metrics Cards
+    const tempEl = document.getElementById('metric-temp');
+    tempEl.textContent = `${r.temp.toFixed(1)}°C`;
+    tempEl.style.color = (r.temp > 8.0) ? 'var(--danger)' : (r.temp < 2.0) ? 'var(--info)' : 'var(--text)';
+
+    document.getElementById('door-icon').textContent = r.door ? '🚪' : '🔒';
+    document.getElementById('door-status').textContent = r.door ? 'OPEN ⚠' : 'CLOSED';
+    document.getElementById('door-status').style.color = r.door ? 'var(--danger)' : 'var(--text)';
+
+    document.getElementById('mains-icon').textContent = r.mains ? '⚡' : '🔋';
+    document.getElementById('mains-status').textContent = r.mains ? 'MAINS ACTIVE' : 'BATTERY ONLY ⚠';
+    document.getElementById('mains-status').style.color = !r.mains ? 'var(--gold)' : 'var(--text)';
+
+    // 4. Cryptographic Hash Chain Badge
+    const chainIcon = document.getElementById('chain-badge-icon');
+    const chainText = document.getElementById('chain-status-text');
+    const chainSub = document.getElementById('chain-records-count');
+
+    if (chain.ok) {
+      chainIcon.textContent = '🔒';
+      chainText.textContent = 'HISTORY VERIFIED';
+      chainText.style.color = 'var(--success)';
+      chainSub.textContent = `${status.totalRecords} blocks valid · SHA-256`;
+    } else {
+      chainIcon.textContent = '⚠️';
+      chainText.textContent = `TAMPER DETECTED!`;
+      chainText.style.color = 'var(--danger)';
+      chainSub.textContent = `Broken at record #${chain.brokenAt}!`;
+    }
+
+    // 5. Spoilage Clock
+    const verdictEl = document.getElementById('spoilage-verdict');
+    const progressEl = document.getElementById('spoilage-progress');
+    const secEl = document.getElementById('spoilage-sec');
+    const budgetEl = document.getElementById('spoilage-budget');
+    const pctEl = document.getElementById('spoilage-percent');
+
+    verdictEl.textContent = clock.verdict;
+    const pct = Math.min(Math.round(clock.usedFraction * 100), 100);
+    progressEl.style.width = pct + '%';
+    pctEl.textContent = pct + '%';
+    secEl.textContent = clock.excursionSec + 's';
+    budgetEl.textContent = clock.budgetSec + 's';
+
+    if (clock.verdict.startsWith('QUARANTINE')) {
+      verdictEl.className = 'badge badge-danger';
+      progressEl.style.background = 'var(--danger)';
+    } else if (clock.verdict === 'CAUTION') {
+      verdictEl.className = 'badge badge-gold';
+      progressEl.style.background = 'var(--gold)';
+    } else {
+      verdictEl.className = 'badge badge-success';
+      progressEl.style.background = 'var(--success)';
+    }
+
+    // 6. OLED Mirror
+    document.getElementById('oled-temp-val').textContent = `${r.temp.toFixed(1)} C`;
+    document.getElementById('oled-door-val').textContent = r.door ? 'DOOR: OPEN' : 'DOOR: closed';
+    const oledStat = document.getElementById('oled-status-val');
+    if (r.temp > 8.0 || r.temp < 2.0) {
+      oledStat.textContent = 'ALERT: out of range';
+      oledStat.style.color = '#ef4444';
+    } else {
+      oledStat.textContent = 'Status: OK';
+      oledStat.style.color = '#4ade80';
+    }
+
+    // 7. Update Chart
+    if (chartInstance && list.length) {
+      const recent = list.slice(-25);
+      chartInstance.data.labels = recent.map(x => new Date(x.ts).toLocaleTimeString());
+      chartInstance.data.datasets[0].data = recent.map(x => x.temp);
+      chartInstance.data.datasets[1].data = Array(recent.length).fill(8.0);
+      chartInstance.data.datasets[2].data = Array(recent.length).fill(2.0);
+      chartInstance.update('none');
+    }
+
+    // 8. Update Table
+    const tbody = document.getElementById('readings-tbody');
+    const displayList = list.slice(-10).reverse();
+    tbody.innerHTML = displayList.map(item => {
+      const cause = item.diagnosis ? item.diagnosis.cause : 'Normal';
+      const tempColor = item.temp > 8.0 ? 'var(--danger)' : item.temp < 2.0 ? 'var(--info)' : 'var(--success)';
+      return `
+        <tr>
+          <td style="font-size:0.8rem; color:var(--text-muted);">${new Date(item.ts).toLocaleTimeString()}</td>
+          <td style="font-weight:700; color:${tempColor};">${item.temp.toFixed(1)}°C</td>
+          <td>${item.door ? '<span class="badge badge-danger">OPEN</span>' : '<span class="badge badge-teal">CLOSED</span>'}</td>
+          <td>${item.mains ? '<span style="color:var(--teal);">⚡ Grid</span>' : '<span style="color:var(--gold);">🔋 Battery</span>'}</td>
+          <td>${item.temp > 8.0 || item.temp < 2.0 ? `<strong style="color:var(--danger);">${cause}</strong>` : '<span style="color:var(--success);">OK</span>'}</td>
+          <td style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim);">${item.hash ? item.hash.substring(0, 16) + '...' : 'GENESIS'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // ─── Actions & Testing Presets ───────────────────────────────────────────────
+  async function triggerPreset(scenario) {
+    try {
+      const res = await fetch('/api/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenario })
+      });
+      const data = await res.json();
+      toast(`Triggered scenario: ${scenario}`, '⚡');
+      fetchStatus();
+    } catch(e) {
+      toast('Failed to trigger simulation', '❌');
+    }
+  }
+
+  async function tamperRecent() {
+    try {
+      const res = await fetch('/api/tamper/5', { method: 'POST' });
+      const data = await res.json();
+      toast('Tampered record #5! Hash chain broken.', '🚨');
+      fetchStatus();
+    } catch(e) {
+      toast('Tamper failed', '❌');
+    }
+  }
+
+  async function repairChain() {
+    try {
+      const res = await fetch('/api/chain/reset', { method: 'POST' });
+      const data = await res.json();
+      toast('Hash chain repaired & verified!', '✅');
+      fetchStatus();
+    } catch(e) {
+      toast('Repair failed', '❌');
+    }
+  }
+
+  async function resetSpoilageClock() {
+    try {
+      const res = await fetch('/api/spoilage/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ batchName: 'Batch #V-' + new Date().toISOString().slice(0, 10) })
+      });
+      toast('Spoilage clock reset for fresh batch', '❄️');
+      fetchStatus();
+    } catch(e) {
+      toast('Reset failed', '❌');
+    }
+  }
+
+  async function toggleDemoBudget() {
+    isDemoBudget = !isDemoBudget;
+    const btn = document.getElementById('budget-btn');
+    const secs = isDemoBudget ? 120 : 1800; // 2 min demo vs 30 min standard
+    btn.textContent = isDemoBudget ? '⏰ Switch to 30-Min Real Budget' : '⚡ Set 2-Min Demo Mode';
+
+    await fetch('/api/spoilage/budget', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seconds: secs })
+    });
+    toast(`Spoilage budget set to ${secs}s`, '⏱️');
+    fetchStatus();
+  }
+
+  // Init
+  initChart();
+  fetchStatus();
+  setInterval(fetchStatus, 3000);
+</script>
+
+</body>
+</html>

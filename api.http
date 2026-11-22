@@ -1,0 +1,129 @@
+### Pharma Cold-Chain Monitor API Tests
+### Compatible with VS Code extension: humao.rest-client
+
+@base = http://localhost:3000
+
+# ─── 1. Authentication: Login (Admin) ────────────────────────
+# @name loginAdmin
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@pharmachain.com",
+  "password": "Admin@123"
+}
+
+###
+
+# ─── 2. Post Normal Reading from ESP32 ───────────────────────
+POST {{base}}/api/reading
+Content-Type: application/json
+
+{
+  "temp": 4.5,
+  "door": false,
+  "mains": true,
+  "uptime": 120
+}
+
+###
+
+# ─── 3. Post Excursion Reading: Door Left Open ──────────────
+POST {{base}}/api/reading
+Content-Type: application/json
+
+{
+  "temp": 9.4,
+  "door": true,
+  "mains": true,
+  "uptime": 130
+}
+
+###
+
+# ─── 4. Post Excursion Reading: Power Cut ───────────────────
+POST {{base}}/api/reading
+Content-Type: application/json
+
+{
+  "temp": 10.2,
+  "door": false,
+  "mains": false,
+  "uptime": 140
+}
+
+###
+
+# ─── 5. Post Excursion Reading: Freezing Risk ────────────────
+POST {{base}}/api/reading
+Content-Type: application/json
+
+{
+  "temp": 0.8,
+  "door": false,
+  "mains": true,
+  "uptime": 150
+}
+
+###
+
+# ─── 6. Trigger Compressor Failure Rise Simulation ───────────
+POST {{base}}/api/simulate
+Content-Type: application/json
+
+{
+  "scenario": "compressor_failure"
+}
+
+###
+
+# ─── 7. Get Current Status & Diagnosis (Polls every 3s-5s) ───
+GET {{base}}/api/status
+
+###
+
+# ─── 8. Get Recent Readings (Last 200) ───────────────────────
+GET {{base}}/api/readings
+
+###
+
+# ─── 9. Verify Cryptographic SHA-256 Hash Chain ──────────────
+GET {{base}}/api/verify
+
+###
+
+# ─── 10. Tamper Record #3 (Simulate Record Falsification) ───
+POST {{base}}/api/tamper/3
+
+###
+
+# ─── 11. Repair / Recalculate Hash Chain ─────────────────────
+POST {{base}}/api/chain/reset
+
+###
+
+# ─── 12. Set Spoilage Clock to 120s Demo Budget ──────────────
+POST {{base}}/api/spoilage/budget
+Content-Type: application/json
+
+{
+  "seconds": 120
+}
+
+###
+
+# ─── 13. Reset Spoilage Clock for Fresh Batch ────────────────
+POST {{base}}/api/spoilage/reset
+Content-Type: application/json
+
+{
+  "batchName": "Covaxin Batch #V-2026-11-B",
+  "budgetSec": 1800
+}
+
+###
+
+# ─── 14. Download Official PDF Compliance Report ─────────────
+GET {{base}}/api/report.pdf
+
+###

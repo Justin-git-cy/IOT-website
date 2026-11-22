@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alerts — PharmaChain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/css/main.css"/>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container flex-between">
+    <a href="/" class="navbar-brand"><div class="logo-icon">🧊</div><span>PharmaChain</span></a>
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <span id="user-name" style="font-size:0.88rem; font-weight:600; color:var(--text);"></span>
+      <button onclick="logout()" class="btn btn-outline btn-sm"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-label">Navigation</div>
+    <a href="/dashboard" class="sidebar-link"><i class="fas fa-th-large"></i> Dashboard</a>
+    <a href="/shipments" class="sidebar-link"><i class="fas fa-truck"></i> Shipments</a>
+    <a href="/alerts" class="sidebar-link active"><i class="fas fa-bell"></i> Alerts</a>
+    <a href="/reports" class="sidebar-link"><i class="fas fa-chart-bar"></i> Reports</a>
+    <div class="sidebar-label" style="margin-top:1rem;">Settings</div>
+    <a href="#" class="sidebar-link"><i class="fas fa-cog"></i> Settings</a>
+    <a href="#" class="sidebar-link"><i class="fas fa-users"></i> Team</a>
+  </aside>
+
+  <main class="main-content">
+    <div class="flex-between" style="margin-bottom:1.75rem;">
+      <div>
+        <h1 style="font-size:1.6rem; margin-bottom:0.2rem;">Alerts Center</h1>
+        <p style="font-size:0.88rem;">Temperature excursions, sensor faults, and system notifications</p>
+      </div>
+      <div style="display:flex; gap:0.75rem;">
+        <button class="btn btn-outline btn-sm" onclick="acknowledgeAll()"><i class="fas fa-check-double"></i> Acknowledge All</button>
+        <button class="btn btn-outline btn-sm" onclick="loadAlerts()"><i class="fas fa-sync-alt"></i> Refresh</button>
+      </div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" id="tab-all" onclick="filterAlerts('all', this)">All</button>
+      <button class="btn btn-outline btn-sm" id="tab-critical" onclick="filterAlerts('critical', this)">🚨 Critical</button>
+      <button class="btn btn-outline btn-sm" id="tab-warning" onclick="filterAlerts('warning', this)">⚠️ Warning</button>
+      <button class="btn btn-outline btn-sm" id="tab-info" onclick="filterAlerts('info', this)">ℹ️ Info</button>
+      <button class="btn btn-outline btn-sm" id="tab-unack" onclick="filterAlerts('unack', this)">🔴 Unacknowledged</button>
+    </div>
+
+    <!-- Summary row -->
+    <div style="display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+      <div style="display:flex; gap:0.5rem; align-items:center; padding:0.6rem 1rem; background:rgba(231,76,60,0.08); border-radius:8px; border:1px solid rgba(231,76,60,0.2);">
+        <span>🚨</span> <span id="count-critical" style="font-weight:700; color:var(--danger);">—</span> <span style="font-size:0.82rem; color:var(--text-muted);">Critical</span>
+      </div>
+      <div style="display:flex; gap:0.5rem; align-items:center; padding:0.6rem 1rem; background:rgba(243,156,18,0.08); border-radius:8px; border:1px solid rgba(243,156,18,0.2);">
+        <span>⚠️</span> <span id="count-warning" style="font-weight:700; color:var(--warning);">—</span> <span style="font-size:0.82rem; color:var(--text-muted);">Warning</span>
+      </div>
+      <div style="display:flex; gap:0.5rem; align-items:center; padding:0.6rem 1rem; background:rgba(52,152,219,0.08); border-radius:8px; border:1px solid rgba(52,152,219,0.2);">
+        <span>ℹ️</span> <span id="count-info" style="font-weight:700; color:var(--info);">—</span> <span style="font-size:0.82rem; color:var(--text-muted);">Info</span>
+      </div>
+    </div>
+
+    <!-- Alert List -->
+    <div id="alerts-container">
+      <div class="flex-center" style="height:200px;"><div class="spinner"></div></div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+  const token = localStorage.getItem('pharma_token');
+  if (!token) { window.location.href = '/login'; }
+  const user = JSON.parse(localStorage.getItem('pharma_user') || '{}');
+  document.getElementById('user-name').textContent = user.name || '';
+
+  function logout() { localStorage.clear(); fetch('/api/auth/logout', {method:'POST'}); window.location.href='/login'; }
+
+  function toast(msg, type = 'success') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+    t.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  }
+
+  const headers = { 'Authorization': `Bearer ${token}` };
+  let allAlerts = [];
+  let currentFilter = 'all';
+
+  async function loadAlerts() {
+    try {
+      const res = await fetch('/api/alerts', { headers, credentials: 'include' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      allAlerts = await res.json();
+      document.getElementById('count-critical').textContent = allAlerts.filter(a => a.severity==='critical').length;
+      document.getElementById('count-warning').textContent  = allAlerts.filter(a => a.severity==='warning').length;
+      document.getElementById('count-info').textContent     = allAlerts.filter(a => a.severity==='info').length;
+      renderAlerts(allAlerts);
+    } catch(e) {
+      document.getElementById('alerts-container').innerHTML = '<p style="color:var(--danger);">Failed to load alerts.</p>';
+    }
+  }
+
+  function filterAlerts(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.sidebar ~ * .btn').forEach(b => { b.classList.remove('btn-primary'); b.classList.add('btn-outline'); });
+    btn.classList.remove('btn-outline');
+    btn.classList.add('btn-primary');
+    let filtered = allAlerts;
+    if (type === 'critical') filtered = allAlerts.filter(a => a.severity === 'critical');
+    else if (type === 'warning') filtered = allAlerts.filter(a => a.severity === 'warning');
+    else if (type === 'info') filtered = allAlerts.filter(a => a.severity === 'info');
+    else if (type === 'unack') filtered = allAlerts.filter(a => !a.acknowledged);
+    renderAlerts(filtered);
+  }
+
+  function renderAlerts(data) {
+    const c = document.getElementById('alerts-container');
+    if (!data.length) {
+      c.innerHTML = `<div class="card text-center" style="padding:3rem;">
+        <div style="font-size:3rem; margin-bottom:1rem;">✅</div>
+        <h3 style="color:var(--success);">No alerts</h3>
+        <p>All systems operating within normal parameters.</p>
+      </div>`;
+      return;
+    }
+    const sevColor = { critical: 'var(--danger)', warning: 'var(--warning)', info: 'var(--info)' };
+    const sevIcon  = { critical: '🚨', warning: '⚠️', info: 'ℹ️' };
+    const typeLabel = { TEMP_EXCURSION: 'Temperature Excursion', LOW_BATTERY: 'Low Battery', HUMIDITY_HIGH: 'High Humidity' };
+    c.innerHTML = data.map(a => `
+    <div class="alert-item alert-${a.severity}" style="border-left:3px solid ${sevColor[a.severity]};">
+      <span class="alert-icon">${sevIcon[a.severity]}</span>
+      <div class="alert-body">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.5rem;">
+          <div>
+            <div class="alert-title" style="color:${sevColor[a.severity]};">${typeLabel[a.type] || a.type}</div>
+            <div class="alert-meta" style="margin-bottom:0.3rem;">${a.message}</div>
+            <div class="alert-meta">
+              <span style="font-weight:600;">Shipment:</span> ${a.shipmentId} &nbsp;·&nbsp;
+              <span style="font-weight:600;">Time:</span> ${new Date(a.timestamp).toLocaleString()}
+            </div>
+          </div>
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-shrink:0;">
+            ${a.acknowledged
+              ? '<span class="badge badge-success">✓ Acknowledged</span>'
+              : `<button class="btn btn-outline btn-sm" onclick="acknowledge('${a.id}', this)"><i class="fas fa-check"></i> Acknowledge</button>`}
+            <span class="badge badge-${a.severity === 'critical' ? 'danger' : a.severity === 'warning' ? 'warning' : 'info'}">${a.severity}</span>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+  }
+
+  function acknowledge(id, btn) {
+    const alert = allAlerts.find(a => a.id === id);
+    if (alert) {
+      alert.acknowledged = true;
+      btn.parentElement.innerHTML = '<span class="badge badge-success">✓ Acknowledged</span>';
+      toast('Alert acknowledged', 'success');
+    }
+  }
+
+  function acknowledgeAll() {
+    allAlerts.forEach(a => a.acknowledged = true);
+    renderAlerts(allAlerts);
+    toast('All alerts acknowledged', 'success');
+  }
+
+  loadAlerts();
+  setInterval(loadAlerts, 30000);
+</script>
+</body>
+</html>
