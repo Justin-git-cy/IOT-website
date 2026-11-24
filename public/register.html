@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Create Account — Pharma Cold-Chain Monitor</title>
+  <title>Personnel Registration — PharmaGuard Enterprise</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -13,26 +13,26 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 2.5rem;
+      padding: 2.75rem 2.5rem;
       width: 100%;
       max-width: 480px;
       box-shadow: 0 25px 60px rgba(0,0,0,0.7), var(--teal-glow);
     }
   </style>
 </head>
-<body style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at top right, rgba(6,182,212,0.12) 0%, transparent 60%), radial-gradient(ellipse at bottom left, rgba(245,158,11,0.08) 0%, transparent 50%), var(--bg-dark); padding: 1.5rem;">
+<body style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at top right, rgba(6,182,212,0.12) 0%, transparent 60%), radial-gradient(ellipse at bottom left, rgba(245,158,11,0.06) 0%, transparent 50%), var(--bg-dark); padding: 1.5rem;">
 
 <div class="auth-box">
   <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom: 1.25rem;">
     <div class="brand-icon">❄️</div>
     <div>
-      <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff;">Pharma Cold-Chain</h2>
-      <p style="font-size: 0.78rem; color: var(--gold);">IoT Medical Surveillance Node</p>
+      <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff;">PharmaGuard</h2>
+      <p style="font-size: 0.75rem; color: var(--gold); font-weight: 600; letter-spacing: 0.06em;">ENTERPRISE SURVEILLANCE PORTAL</p>
     </div>
   </div>
 
-  <h3 style="font-size: 1.5rem; margin-bottom: 0.25rem;">Create Monitor Account</h3>
-  <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Register a cold-chain observer, lab quality officer, or health technician profile.</p>
+  <h3 style="font-size: 1.45rem; margin-bottom: 0.25rem;">Register Quality Officer</h3>
+  <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Create a credential profile for cold-chain audit logging and surveillance.</p>
 
   <div id="auth-alert" style="display:none; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.25rem; font-size: 0.85rem;"></div>
 
@@ -40,31 +40,31 @@
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
       <div class="form-group">
         <label class="form-label">Full Name</label>
-        <input type="text" id="name" class="form-control" placeholder="Dr. Vikram Patel" required/>
+        <input type="text" id="name" class="form-control" placeholder="Dr. Elena Rostova" required/>
       </div>
       <div class="form-group">
-        <label class="form-label">Facility / Lab</label>
-        <input type="text" id="organization" class="form-control" placeholder="PHC Malleswaram" required/>
+        <label class="form-label">Facility / Repository</label>
+        <input type="text" id="organization" class="form-control" placeholder="Apex BioVault 02" required/>
       </div>
     </div>
 
     <div class="form-group">
-      <label class="form-label">Email Address</label>
-      <input type="email" id="email" class="form-control" placeholder="vikram@pharmahub.in" required/>
+      <label class="form-label">Authorized Work Email</label>
+      <input type="email" id="email" class="form-control" placeholder="elena.r@biologistics.org" required/>
     </div>
 
     <div class="form-group">
-      <label class="form-label">Password</label>
-      <input type="password" id="password" class="form-control" placeholder="At least 6 characters" required minlength="6"/>
+      <label class="form-label">Passcode</label>
+      <input type="password" id="password" class="form-control" placeholder="Minimum 6 characters" required minlength="6"/>
     </div>
 
     <button type="submit" class="btn btn-teal btn-block" style="margin-top: 1rem;" id="reg-btn">
-      <i class="fas fa-user-plus"></i> Create Account & Open Console
+      <i class="fas fa-id-badge"></i> Initialize Profile & Open Console
     </button>
   </form>
 
   <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
-    Already registered? <a href="/login" style="color:var(--teal); font-weight:600;">Sign in here</a>
+    Existing personnel? <a href="/login" style="color:var(--teal); font-weight:600;">Sign in here</a>
   </div>
 </div>
 
@@ -97,7 +97,7 @@
         alertBox.style.background = 'rgba(16, 185, 129, 0.15)';
         alertBox.style.border = '1px solid var(--success)';
         alertBox.style.color = '#a7f3d0';
-        alertBox.textContent = `Welcome ${data.user.name}! Your account is active. Redirecting...`;
+        alertBox.textContent = `Profile registered for ${data.user.name}. Opening surveillance console...`;
         setTimeout(() => window.location.href = '/dashboard', 600);
       } else {
         alertBox.style.display = 'block';
@@ -112,7 +112,7 @@
       alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
       alertBox.style.border = '1px solid var(--danger)';
       alertBox.style.color = '#fca5a5';
-      alertBox.textContent = 'Connection error to backend.';
+      alertBox.textContent = 'Connection error to backend server.';
       btn.disabled = false;
     }
   });

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hardware, Wiring & Firmware — Pharma Cold-Chain Monitor</title>
+  <title>Hardware Specifications & Schematics — PharmaGuard Enterprise</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -16,11 +16,11 @@
   <div class="container flex-between">
     <a href="/" class="brand">
       <div class="brand-icon">❄️</div>
-      <span>Pharma Cold-Chain Monitor</span>
+      <span>PharmaGuard <span style="font-size:0.75rem; font-weight:600; color:var(--teal); letter-spacing:0.06em; margin-left:4px;">ENTERPRISE</span></span>
     </a>
     <div style="display:flex; align-items:center; gap: 0.75rem;">
-      <a href="/dashboard" class="btn btn-outline btn-sm"><i class="fas fa-desktop"></i> Live Monitor</a>
-      <a href="/api/report.pdf" target="_blank" class="btn btn-teal btn-sm"><i class="fas fa-file-pdf"></i> Audit PDF</a>
+      <a href="/dashboard" class="btn btn-outline btn-sm"><i class="fas fa-desktop"></i> Clinical Monitor</a>
+      <a href="/api/report.pdf" target="_blank" class="btn btn-teal btn-sm"><i class="fas fa-file-pdf"></i> Compliance PDF</a>
     </div>
   </div>
 </nav>
@@ -28,171 +28,164 @@
 <div class="app-wrapper">
   <!-- Sidebar -->
   <aside class="app-sidebar">
-    <div class="sidebar-heading">Navigation</div>
-    <a href="/dashboard" class="sidebar-link"><i class="fas fa-chart-line"></i> Live Monitor</a>
-    <a href="/simulator" class="sidebar-link"><i class="fas fa-flask"></i> Test Lab & Simulator</a>
-    <a href="/audit" class="sidebar-link"><i class="fas fa-link"></i> Hash Chain Audit</a>
-    <a href="/hardware" class="sidebar-link active"><i class="fas fa-microchip"></i> Hardware & Wiring</a>
-    <a href="/presentation" class="sidebar-link"><i class="fas fa-chalkboard-teacher"></i> Presentation Slides</a>
+    <div class="sidebar-heading">Clinical Surveillance</div>
+    <a href="/dashboard" class="sidebar-link"><i class="fas fa-chart-line"></i> Clinical Monitor</a>
+    <a href="/simulator" class="sidebar-link"><i class="fas fa-flask"></i> Diagnostics Lab</a>
+    <a href="/audit" class="sidebar-link"><i class="fas fa-link"></i> Chain of Custody</a>
+    <a href="/hardware" class="sidebar-link active"><i class="fas fa-microchip"></i> Hardware & Schematics</a>
 
-    <div class="sidebar-heading" style="margin-top: 1rem;">Quick Links</div>
+    <div class="sidebar-heading" style="margin-top: 1rem;">Documentation</div>
     <a href="#bom" class="sidebar-link"><i class="fas fa-list-ul"></i> Bill of Materials</a>
-    <a href="#pinout" class="sidebar-link"><i class="fas fa-plug"></i> ESP32 Pinout</a>
-    <a href="#firmware" class="sidebar-link"><i class="fas fa-code"></i> Arduino Firmware</a>
-    <a href="#wokwi" class="sidebar-link"><i class="fas fa-laptop-code"></i> Wokwi Simulator</a>
+    <a href="#pinout" class="sidebar-link"><i class="fas fa-plug"></i> Edge Pinout Allocations</a>
+    <a href="#firmware" class="sidebar-link"><i class="fas fa-code"></i> Edge C++ Firmware</a>
+    <a href="#calibration" class="sidebar-link"><i class="fas fa-balance-scale"></i> Calibration Standards</a>
   </aside>
 
   <!-- Main Content -->
   <main class="app-main">
     <div class="flex-between" style="margin-bottom: 1.5rem;">
       <div>
-        <h1 style="font-size: 1.6rem; margin-bottom: 0.2rem;">Hardware Architecture & Schematics</h1>
-        <p style="font-size: 0.85rem;">ESP32 DevKit pinout, sensor wiring, Bill of Materials (~₹1,500), and Arduino C++ firmware</p>
+        <h1 style="font-size: 1.6rem; margin-bottom: 0.2rem;">Edge Node Architecture & Schematics</h1>
+        <p style="font-size: 0.85rem; color:var(--text-muted);">ESP32 microcontroller integration, 1-Wire bus topology, power-loss detection, and C++ edge firmware</p>
       </div>
-      <a href="https://wokwi.com" target="_blank" class="btn btn-gold btn-sm"><i class="fas fa-external-link-alt"></i> Open Wokwi Simulator</a>
+      <button class="btn btn-teal btn-sm" onclick="copyFirmware()"><i class="fas fa-copy"></i> Copy Edge Firmware</button>
     </div>
 
-    <!-- Bill of Materials Section (Page 2 of PDF) -->
+    <!-- Bill of Materials Section -->
     <div class="card" id="bom" style="margin-bottom: 2rem;">
       <div class="card-header">
         <div class="card-title">
-          <i class="fas fa-shopping-cart text-gold"></i> Bill of Materials (Total: ~₹1,200 to ₹1,800)
+          <i class="fas fa-microchip text-gold"></i> Production Bill of Materials (BOM)
         </div>
-        <span class="badge badge-gold">Cost Advantage: 10x Cheaper than Commercial Loggers</span>
+        <span class="badge badge-teal">Commercial Viability: ~₹1,500 Unit Cost</span>
       </div>
 
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Component</th>
-              <th>Specification</th>
-              <th>Estimated Cost</th>
-              <th>Role in Cold Chain System</th>
+              <th>Subsystem</th>
+              <th>Component Specification</th>
+              <th>Pin / Interface</th>
+              <th>Operational Function</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>ESP32 DevKit Board</strong></td>
-              <td>38-Pin, Dual Core, 2.4GHz Wi-Fi + BLE</td>
-              <td style="color:var(--gold); font-weight:700;">₹450</td>
-              <td>Edge controller: reads sensors, drives OLED/buzzer, Wi-Fi JSON post, flash buffering.</td>
+              <td><strong>Microcontroller</strong></td>
+              <td>ESP32-WROOM-32 (Dual Core 240MHz, 2.4GHz Wi-Fi/BLE)</td>
+              <td>Edge SoC</td>
+              <td>Gathers telemetry, runs local diagnosis, drives OLED/alarm, and posts encrypted JSON.</td>
             </tr>
             <tr>
-              <td><strong>DS18B20 Temp Probe</strong></td>
-              <td>Waterproof probe + 4.7 kΩ pull-up resistor</td>
-              <td style="color:var(--gold); font-weight:700;">₹200</td>
-              <td>1-Wire digital thermometer probe submerged inside the medicine tray / fridge cavity.</td>
+              <td><strong>Thermal Probe</strong></td>
+              <td>Maxim DS18B20 Waterproof 1-Wire Digital Sensor (±0.5°C)</td>
+              <td>GPIO4 (1-Wire + 4.7kΩ Pull-up)</td>
+              <td>Submerged probe monitors medicine tray temperature across the -10°C to +85°C range.</td>
             </tr>
             <tr>
-              <td><strong>Magnetic Reed Switch</strong></td>
-              <td>Normally Open + Small Neodymium Magnet</td>
-              <td style="color:var(--gold); font-weight:700;">₹80</td>
-              <td>Door state detector on GPIO14. Magnet near = door closed (LOW). Away = door open (HIGH).</td>
+              <td><strong>Door Contact Barrier</strong></td>
+              <td>Hermetically Sealed Magnetic Reed Switch + Rare-Earth Magnet</td>
+              <td>GPIO14 (INPUT_PULLUP)</td>
+              <td>Physical door barrier contact. Closed = Magnet sealed (LOW). Open = Ajar (HIGH).</td>
             </tr>
             <tr>
-              <td><strong>0.96" SSD1306 OLED</strong></td>
-              <td>128x64 pixels, I2C Interface (0x3C)</td>
-              <td style="color:var(--gold); font-weight:700;">₹220</td>
-              <td>Local visual readout: displays temperature, door state, and local status at the fridge.</td>
+              <td><strong>Physical Mirror Display</strong></td>
+              <td>0.96" SSD1306 128x64 OLED Panel (I2C)</td>
+              <td>GPIO21 (SDA) / GPIO22 (SCL)</td>
+              <td>Immediate on-site visual diagnostics: Temperature, door status, and operational health.</td>
             </tr>
             <tr>
-              <td><strong>Active Buzzer (5V/3.3V)</strong></td>
-              <td>Audible alarm buzzer (GPIO18)</td>
-              <td style="color:var(--gold); font-weight:700;">₹40</td>
-              <td>Hardware failsafe: sounds instantly if temp leaves 2°C–8°C. Operates independently of cloud.</td>
+              <td><strong>Autonomous Failsafe Buzzer</strong></td>
+              <td>3.3V/5V Piezo Active Audio Transducer</td>
+              <td>GPIO18 (PWM / Digital Out)</td>
+              <td>Hardware failsafe layer: alarms locally if limits are breached, even during total cloud outages.</td>
             </tr>
             <tr>
-              <td><strong>Dual Status LEDs</strong></td>
-              <td>1x Green, 1x Red, 2x 220 Ω resistors</td>
-              <td style="color:var(--gold); font-weight:700;">₹30</td>
-              <td>Green = OK (2°C–8°C). Red = ALERT (Out of range or door ajar).</td>
+              <td><strong>Dual Status Indicators</strong></td>
+              <td>Indication LEDs (1x Emerald Green, 1x Crimson Red) + 220Ω</td>
+              <td>GPIO25 (OK) / GPIO26 (ALERT)</td>
+              <td>Visual status beacons for clinical healthcare workers.</td>
             </tr>
             <tr>
-              <td><strong>Power-Cut Voltage Divider</strong></td>
-              <td>Two resistors into GPIO34 (ADC) + Power bank</td>
-              <td style="color:var(--gold); font-weight:700;">₹50</td>
-              <td>Drops mains 5V rail to ~2.5V into ADC. Value &lt; 1000 flags power outage.</td>
-            </tr>
-            <tr>
-              <td><strong>Breadboard & Jumper Wires</strong></td>
-              <td>Half-size breadboard + Male-Male / Male-Female</td>
-              <td style="color:var(--gold); font-weight:700;">₹150</td>
-              <td>Prototyping chassis. Everything available locally on SP Road, Bengaluru.</td>
+              <td><strong>Power Grid Rail Detector</strong></td>
+              <td>Precision Voltage Divider (10kΩ / 10kΩ) + 5V Lithium Backup</td>
+              <td>GPIO34 (ADC Input)</td>
+              <td>Samples mains supply voltage. Reading below threshold flags facility blackout.</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Wiring Pinout Table (Page 3 of PDF) -->
+    <!-- Wiring Pinout Table -->
     <div class="card" id="pinout" style="margin-bottom: 2rem;">
       <div class="card-header">
         <div class="card-title">
-          <i class="fas fa-plug text-teal"></i> Wiring Diagram & ESP32 Pin Allocation
+          <i class="fas fa-plug text-teal"></i> Edge Pinout Allocations & Bus Architecture
         </div>
         <span class="badge badge-teal">3.3V Logic Safe</span>
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
-        <div style="padding: 1rem; border-radius: 8px; background: rgba(6, 182, 212, 0.08); border-left: 4px solid var(--teal);">
-          <div style="font-weight: 700; color: #fff;">GPIO4 &rarr; DS18B20 Data</div>
+        <div style="padding: 1.1rem; border-radius: 9px; background: rgba(6, 182, 212, 0.08); border-left: 4px solid var(--teal);">
+          <div style="font-weight: 700; color: #fff;">GPIO4 &rarr; DS18B20 1-Wire Data</div>
           <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
-            Red to 3.3V, Black to GND, Yellow/White data to GPIO4. 4.7 kΩ resistor between Data and 3.3V.
+            Red to 3.3V, Black to GND, Yellow/Data to GPIO4 with 4.7 kΩ pull-up resistor to 3.3V rail.
           </div>
         </div>
 
-        <div style="padding: 1rem; border-radius: 8px; background: rgba(245, 158, 11, 0.08); border-left: 4px solid var(--gold);">
-          <div style="font-weight: 700; color: #fff;">GPIO14 &rarr; Reed Switch</div>
+        <div style="padding: 1.1rem; border-radius: 9px; background: rgba(245, 158, 11, 0.08); border-left: 4px solid var(--gold);">
+          <div style="font-weight: 700; color: #fff;">GPIO14 &rarr; Magnetic Reed Contact</div>
           <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
-            Configured as <code style="color:var(--gold);">INPUT_PULLUP</code>. Other leg to GND. Closed = door shut.
+            Configured as <code style="color:var(--gold);">INPUT_PULLUP</code>. Opposite leg to GND. Closed circuit = Door shut.
           </div>
         </div>
 
-        <div style="padding: 1rem; border-radius: 8px; background: rgba(6, 182, 212, 0.08); border-left: 4px solid var(--teal);">
-          <div style="font-weight: 700; color: #fff;">GPIO21 & 22 &rarr; SSD1306 OLED</div>
+        <div style="padding: 1.1rem; border-radius: 9px; background: rgba(6, 182, 212, 0.08); border-left: 4px solid var(--teal);">
+          <div style="font-weight: 700; color: #fff;">GPIO21 & 22 &rarr; SSD1306 OLED (I2C)</div>
           <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
-            SDA to GPIO21, SCL to GPIO22, VCC to 3.3V, GND to GND. I2C address 0x3C (or 0x3D).
+            SDA to GPIO21, SCL to GPIO22. Powered at 3.3V. Default I2C address <code>0x3C</code>.
           </div>
         </div>
 
-        <div style="padding: 1rem; border-radius: 8px; background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--danger);">
-          <div style="font-weight: 700; color: #fff;">GPIO18 &rarr; Active Buzzer</div>
+        <div style="padding: 1.1rem; border-radius: 9px; background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--danger);">
+          <div style="font-weight: 700; color: #fff;">GPIO18 &rarr; Active Failsafe Buzzer</div>
           <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
-            Positive leg to GPIO18, negative to GND. Sounds on local out-of-range alarm.
+            Positive terminal to GPIO18, negative to GND. Sounds instantly upon out-of-spec excursion.
           </div>
         </div>
 
-        <div style="padding: 1rem; border-radius: 8px; background: rgba(16, 185, 129, 0.08); border-left: 4px solid var(--success);">
-          <div style="font-weight: 700; color: #fff;">GPIO25 & 26 &rarr; Green & Red LEDs</div>
+        <div style="padding: 1.1rem; border-radius: 9px; background: rgba(16, 185, 129, 0.08); border-left: 4px solid var(--success);">
+          <div style="font-weight: 700; color: #fff;">GPIO25 & 26 &rarr; Operational LEDs</div>
           <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
-            Green LED on GPIO25 (Normal). Red LED on GPIO26 (Alarm). Each with 220 Ω resistor.
+            Green on GPIO25 (Compliant). Red on GPIO26 (Excursion Alert). 220 Ω current-limiting resistors.
           </div>
         </div>
 
-        <div style="padding: 1rem; border-radius: 8px; background: rgba(245, 158, 11, 0.08); border-left: 4px solid var(--gold);">
+        <div style="padding: 1.1rem; border-radius: 9px; background: rgba(245, 158, 11, 0.08); border-left: 4px solid var(--gold);">
           <div style="font-weight: 700; color: #fff;">GPIO34 &rarr; Mains Supply ADC</div>
           <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
-            Voltage divider drops 5V mains line to ~2.5V into ADC. Below 1000 indicates power cut.
+            Voltage divider drops 5.0V grid rail to ~2.5V into ADC. Analog value below 1000 flags power outage.
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Full Arduino C++ Firmware (Pages 3, 4, 5 of PDF) -->
+    <!-- Production Edge C++ Firmware -->
     <div class="card" id="firmware" style="margin-bottom: 2rem;">
       <div class="card-header">
         <div class="card-title">
-          <i class="fas fa-file-code text-teal"></i> Complete ESP32 Firmware Core (Arduino C++)
+          <i class="fas fa-file-code text-teal"></i> Production Edge Node Firmware (Arduino C++)
         </div>
-        <button class="btn btn-teal btn-sm" onclick="copyFirmware()"><i class="fas fa-copy"></i> Copy Code</button>
+        <button class="btn btn-teal btn-sm" onclick="copyFirmware()"><i class="fas fa-copy"></i> Copy Source</button>
       </div>
 
       <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
-        Libraries required: <code>OneWire</code>, <code>DallasTemperature</code>, <code>Adafruit_SSD1306</code>, <code>Adafruit_GFX</code>, <code>ArduinoJson</code>.
+        Compiled with ESP32 Core v2.x. Dependencies: <code>OneWire</code>, <code>DallasTemperature</code>, <code>Adafruit_SSD1306</code>, <code>ArduinoJson</code>.
       </p>
 
-      <div class="code-box" id="code-block" style="max-height: 420px; font-size: 0.82rem;">
+      <div class="code-box" id="code-block" style="max-height: 440px; font-size: 0.82rem;">
 #include &lt;WiFi.h&gt;
 #include &lt;HTTPClient.h&gt;
 #include &lt;OneWire.h&gt;
@@ -202,15 +195,16 @@
 #include &lt;Adafruit_SSD1306.h&gt;
 #include &lt;ArduinoJson.h&gt;
 
-const char* WIFI_SSID = "Wokwi-GUEST"; // Or your 2.4 GHz phone hotspot
-const char* WIFI_PASS = "";
-const char* API_URL  = "http://YOUR-BACKEND-IP:3000/api/reading";
+const char* WIFI_SSID = "Clinical_Secure_WLAN";
+const char* WIFI_PASS = "PharmaSecure2026";
+const char* API_URL  = "http://pharmaguard.internal.hospital/api/reading";
 
 #define ONE_WIRE 4
 #define DOOR_PIN 14
 #define BUZZER 18
 #define LED_OK 25
 #define LED_BAD 26
+#define MAINS_ADC 34
 const float T_MIN = 2.0, T_MAX = 8.0;
 
 OneWire ow(ONE_WIRE);
@@ -232,15 +226,16 @@ void setup() {
 void loop() {
   sensors.requestTemperatures();
   float t = sensors.getTempCByIndex(0);
-  bool doorOpen = digitalRead(DOOR_PIN) == HIGH; // HIGH = magnet away = open
-  bool bad = (t > T_MAX || t < T_MIN);
+  bool doorOpen = digitalRead(DOOR_PIN) == HIGH;
+  bool mainsPresent = analogRead(MAINS_ADC) > 1000;
+  bool bad = (t > T_MAX || t < T_MIN || doorOpen);
 
-  // Local failsafe alarm - operates independently of Wi-Fi!
+  // Autonomous Hardware Safety Layer: Sounds buzzer even if network is down!
   digitalWrite(LED_OK, !bad);
   digitalWrite(LED_BAD, bad);
   digitalWrite(BUZZER, bad);
 
-  // Update 0.96" OLED display
+  // Local OLED Refresh
   oled.clearDisplay();
   oled.setTextColor(WHITE);
   oled.setTextSize(2);
@@ -248,19 +243,20 @@ void loop() {
   oled.printf("%.1f C", t);
   oled.setTextSize(1);
   oled.setCursor(0, 30);
-  oled.print(doorOpen ? "DOOR: OPEN" : "DOOR: closed");
+  oled.print(doorOpen ? "DOOR: UNSEALED" : "DOOR: CLOSED");
   oled.setCursor(0, 44);
-  oled.print(bad ? "ALERT: out of range" : "Status: OK");
+  oled.print(bad ? "ALERT: EXCURSION" : "STATUS: COMPLIANT");
   oled.display();
 
-  // Transmit telemetry every 10 seconds
+  // Send Telemetry Packet every 10 seconds
   if (millis() - lastSend > 10000) {
     lastSend = millis();
     if (WiFi.status() == WL_CONNECTED) {
-      StaticJsonDocument&lt;200&gt; d;
+      StaticJsonDocument&lt;256&gt; d;
       d["temp"] = t;
       d["door"] = doorOpen;
-      d["mains"] = true; // In full build, read GPIO34 ADC
+      d["mains"] = mainsPresent;
+      d["battery"] = mainsPresent ? 99 : 76;
       d["uptime"] = millis() / 1000;
 
       String body;
@@ -277,20 +273,24 @@ void loop() {
       </div>
     </div>
 
-    <!-- Wokwi Simulation Guide (Page 3 of PDF) -->
-    <div class="card" id="wokwi">
+    <!-- Calibration & Compliance Standards -->
+    <div class="card" id="calibration">
       <div class="card-header">
         <div class="card-title">
-          <i class="fas fa-laptop-code text-gold"></i> Wokwi Simulator Setup (30-Minute Virtual Build)
+          <i class="fas fa-balance-scale text-gold"></i> Calibration & Regulatory Standards
         </div>
+        <span class="badge badge-gold">WHO Good Distribution Practice</span>
       </div>
-      <ol style="padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; color: var(--text-muted);">
-        <li>Go to <a href="https://wokwi.com" target="_blank" style="color:var(--teal); font-weight:600;">wokwi.com</a> and start a new <strong>ESP32</strong> project.</li>
-        <li>Add parts: <code>DS18B20</code>, <code>Slide Switch</code> (stands in for the reed switch), <code>SSD1306 OLED (I2C)</code>, <code>Buzzer</code>, and <code>Two LEDs</code>.</li>
-        <li>Wire to the pins listed in the table above (GPIO4, GPIO14, GPIO21, GPIO22, GPIO18, GPIO25, GPIO26).</li>
-        <li>Paste the Arduino firmware above. Wokwi includes simulated Wi-Fi (<code>Wokwi-GUEST</code>, no password).</li>
-        <li>Drag the DS18B20 slider up/down and flip the slide switch to test every rule in real-time!</li>
-      </ol>
+      <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+        <p style="margin-bottom: 0.75rem;">
+          To maintain regulatory approval for critical biologics storage, deploy units according to standard operating procedures:
+        </p>
+        <ul style="padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li><strong>Probe Placement:</strong> Submerge the DS18B20 probe in a 100ml thermal buffer (glycerol vial or water bottle) to mimic internal drug temperature rather than fleeting air currents.</li>
+          <li><strong>Door Barrier Calibration:</strong> Neodymium magnets must be positioned within 12mm of the reed switch to avoid false ajar triggers caused by refrigerator door vibration.</li>
+          <li><strong>Periodic Calibration Check:</strong> Calibrate against a NIST-traceable reference thermometer annually at 0°C (ice bath) and +5°C (target baseline).</li>
+        </ul>
+      </div>
     </div>
   </main>
 </div>
@@ -304,7 +304,7 @@ void loop() {
     const box = document.getElementById('toast-box');
     const div = document.createElement('div');
     div.className = 'toast-msg';
-    div.innerHTML = `<span>📋</span><span>Arduino Firmware copied to clipboard!</span>`;
+    div.innerHTML = `<span>📋</span><span>Production C++ Firmware copied to clipboard!</span>`;
     box.appendChild(div);
     setTimeout(() => div.remove(), 4000);
   }

@@ -1,10 +1,10 @@
-### Pharma Cold-Chain Monitor API Tests
-### Compatible with VS Code extension: humao.rest-client
+### PharmaGuard Enterprise API Test Suite
+### Executable via VS Code REST Client extension (humao.rest-client)
 
 @base = http://localhost:3000
 
-# ─── 1. Authentication: Login (Admin) ────────────────────────
-# @name loginAdmin
+# ─── 1. Staff Authentication ─────────────────────────────────
+# @name loginOfficer
 POST {{base}}/api/auth/login
 Content-Type: application/json
 
@@ -15,20 +15,21 @@ Content-Type: application/json
 
 ###
 
-# ─── 2. Post Normal Reading from ESP32 ───────────────────────
+# ─── 2. Ingest Compliant Telemetry Packet ─────────────────────
 POST {{base}}/api/reading
 Content-Type: application/json
 
 {
-  "temp": 4.5,
+  "temp": 4.2,
   "door": false,
   "mains": true,
+  "battery": 98,
   "uptime": 120
 }
 
 ###
 
-# ─── 3. Post Excursion Reading: Door Left Open ──────────────
+# ─── 3. Ingest Excursion Vector: Door Left Ajar ──────────────
 POST {{base}}/api/reading
 Content-Type: application/json
 
@@ -36,12 +37,13 @@ Content-Type: application/json
   "temp": 9.4,
   "door": true,
   "mains": true,
+  "battery": 97,
   "uptime": 130
 }
 
 ###
 
-# ─── 4. Post Excursion Reading: Power Cut ───────────────────
+# ─── 4. Ingest Excursion Vector: Grid Blackout ───────────────
 POST {{base}}/api/reading
 Content-Type: application/json
 
@@ -49,12 +51,13 @@ Content-Type: application/json
   "temp": 10.2,
   "door": false,
   "mains": false,
+  "battery": 74,
   "uptime": 140
 }
 
 ###
 
-# ─── 5. Post Excursion Reading: Freezing Risk ────────────────
+# ─── 5. Ingest Excursion Vector: Freezing Incident ───────────
 POST {{base}}/api/reading
 Content-Type: application/json
 
@@ -62,12 +65,13 @@ Content-Type: application/json
   "temp": 0.8,
   "door": false,
   "mains": true,
+  "battery": 98,
   "uptime": 150
 }
 
 ###
 
-# ─── 6. Trigger Compressor Failure Rise Simulation ───────────
+# ─── 6. Simulate Compressor Cooling System Failure ────────────
 POST {{base}}/api/simulate
 Content-Type: application/json
 
@@ -77,53 +81,53 @@ Content-Type: application/json
 
 ###
 
-# ─── 7. Get Current Status & Diagnosis (Polls every 3s-5s) ───
+# ─── 7. Poll Active Operational Telemetry & Health ───────────
 GET {{base}}/api/status
 
 ###
 
-# ─── 8. Get Recent Readings (Last 200) ───────────────────────
+# ─── 8. Query Chronological Telemetry Buffer ──────────────────
 GET {{base}}/api/readings
 
 ###
 
-# ─── 9. Verify Cryptographic SHA-256 Hash Chain ──────────────
+# ─── 9. Validate Cryptographic SHA-256 Ledger ─────────────────
 GET {{base}}/api/verify
 
 ###
 
-# ─── 10. Tamper Record #3 (Simulate Record Falsification) ───
+# ─── 10. Simulate Block Falsification (Tamper Test) ──────────
 POST {{base}}/api/tamper/3
 
 ###
 
-# ─── 11. Repair / Recalculate Hash Chain ─────────────────────
+# ─── 11. Recompute & Repair Cryptographic Chain ───────────────
 POST {{base}}/api/chain/reset
 
 ###
 
-# ─── 12. Set Spoilage Clock to 120s Demo Budget ──────────────
+# ─── 12. Update Spoilage Clock Allocation Budget ─────────────
 POST {{base}}/api/spoilage/budget
 Content-Type: application/json
 
 {
-  "seconds": 120
+  "seconds": 1800
 }
 
 ###
 
-# ─── 13. Reset Spoilage Clock for Fresh Batch ────────────────
+# ─── 13. Re-initialize Spoilage Clock for Fresh Batch ─────────
 POST {{base}}/api/spoilage/reset
 Content-Type: application/json
 
 {
-  "batchName": "Covaxin Batch #V-2026-11-B",
+  "batchName": "Covaxin mRNA-1273 / Batch #CVX-9043",
   "budgetSec": 1800
 }
 
 ###
 
-# ─── 14. Download Official PDF Compliance Report ─────────────
+# ─── 14. Generate Official Regulatory Compliance PDF ──────────
 GET {{base}}/api/report.pdf
 
 ###
